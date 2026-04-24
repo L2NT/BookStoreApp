@@ -41,8 +41,8 @@ fun FilterBar() {
 @Composable
 fun FilterItem(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { }) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Black)
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
     }
 }
