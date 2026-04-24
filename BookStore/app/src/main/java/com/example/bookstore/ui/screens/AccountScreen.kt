@@ -180,7 +180,7 @@ fun AccountScreen(
                         ) {
                             OrderStatusItem(Icons.Outlined.Schedule,     "Chờ xác nhận")
                             OrderStatusItem(Icons.Outlined.Inventory2,   "Chờ lấy hàng")
-                            OrderStatusItem(Icons.Outlined.LocalShipping, "Đang giao hàng")
+                            OrderStatusItem(Icons.Outlined.LocalShipping, "Đang giao")
                             OrderStatusItem(Icons.Outlined.CheckCircle,  "Hoàn tất")
                         }
                     }
