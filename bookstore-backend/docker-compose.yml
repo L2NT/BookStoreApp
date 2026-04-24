@@ -8,6 +8,18 @@ services:
     ports:
       - "3307:3306"
 
+  phpmyadmin: # GUI quản lý database qua browser → http://localhost:8090
+    image: phpmyadmin/phpmyadmin
+    container_name: bookstore_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8090:80"
+    depends_on:
+      - db
+
   mailhog: # Server giả lập để test gửi mail
     image: mailhog/mailhog
     container_name: bookstore_mail
