@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,7 +34,7 @@ fun BookDescription(description: String) {
 
         Text(
             text = if (cleanDescription.isNotBlank()) cleanDescription else "Đang cập nhật mô tả...",
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
             fontSize = 14.sp,
             lineHeight = 20.sp,
             maxLines = if (isExpanded) Int.MAX_VALUE else 4,
