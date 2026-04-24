@@ -146,7 +146,7 @@ private fun SettingsItem(icon: ImageVector, label: String, onClick: () -> Unit) 
             color    = MaterialTheme.colorScheme.onSurface
         )
         Icon(
-            Icons.AutoMirrored.Filled.ArrowForwardIos,
+            Icons.Default.KeyboardArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         )
