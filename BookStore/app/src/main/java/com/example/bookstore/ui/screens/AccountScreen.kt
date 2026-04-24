@@ -196,6 +196,12 @@ fun AccountScreen(
             ) {
                 Column {
                     AccountMenuItem(
+                        icon    = Icons.Outlined.Favorite,
+                        label   = "Sách yêu thích",
+                        onClick = { navController.navigate("wishlist") }
+                    )
+                    HorizontalDivider(color = Color(0xFFEEEEEE), modifier = Modifier.padding(horizontal = 16.dp))
+                    AccountMenuItem(
                         icon    = Icons.Outlined.LocationOn,
                         label   = "Địa chỉ",
                         onClick = { navController.navigate("profile") }

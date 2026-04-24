@@ -31,6 +31,7 @@ import com.example.bookstore.data.dto.response.OrderResponse
 import com.example.bookstore.utils.toVnd
 import com.example.bookstore.viewmodel.AccountViewModel
 import com.example.bookstore.ui.theme.AppColors
+import com.example.bookstore.ui.components.OrderStatusChip
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 private data class StatusInfo(val label: String, val color: Color, val icon: ImageVector)
@@ -268,7 +269,6 @@ fun OrderHistoryScreen(
 // ── Order Card ────────────────────────────────────────────────────────────────
 @Composable
 private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
-    val statusInfo     = getStatusInfo(order.status)
     val totalItems     = order.items.sumOf { it.quantity }
     val firstBookTitle = order.items.firstOrNull()?.bookTitle?.takeIf { it.isNotBlank() }
     val isPending      = order.status.uppercase() == "PENDING"
@@ -296,13 +296,8 @@ private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
                     Spacer(Modifier.width(6.dp))
                     Text("BookVerse", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(statusInfo.icon, contentDescription = null,
-                        tint = statusInfo.color, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(statusInfo.label, color = statusInfo.color,
-                        fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
+                // Dùng OrderStatusChip thay vì inline icon + text
+                OrderStatusChip(status = order.status)
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)

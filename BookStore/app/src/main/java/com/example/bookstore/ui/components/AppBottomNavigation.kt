@@ -1,5 +1,7 @@
 package com.example.bookstore.ui.components
 
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -24,7 +26,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
  *   giữ nguyên vị trí và trạng thái khi switch qua lại.
  */
 @Composable
-fun AppBottomNavigation(navController: NavController) {
+fun AppBottomNavigation(
+    navController: NavController,
+    cartCount: Int = 0
+) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Category,
@@ -41,7 +46,17 @@ fun AppBottomNavigation(navController: NavController) {
 
         items.forEach { item ->
             NavigationBarItem(
-                icon  = { Icon(imageVector = item.icon, contentDescription = item.title) },
+                icon = {
+                    if (item == BottomNavItem.Cart && cartCount > 0) {
+                        BadgedBox(badge = {
+                            Badge { Text(if (cartCount > 99) "99+" else cartCount.toString()) }
+                        }) {
+                            Icon(imageVector = item.icon, contentDescription = item.title)
+                        }
+                    } else {
+                        Icon(imageVector = item.icon, contentDescription = item.title)
+                    }
+                },
                 label = { Text(text = item.title) },
                 // hierarchy: tự động highlight tab khi ở BẤT KỲ màn hình nào trong graph đó.
                 // Không cần xử lý thủ công từng route (startsWith("category_detail/"), v.v.)

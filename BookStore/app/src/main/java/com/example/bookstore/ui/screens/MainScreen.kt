@@ -26,12 +26,14 @@ import com.example.bookstore.ui.components.AppBottomNavigation
 import com.example.bookstore.ui.components.BottomNavItem
 import com.example.bookstore.viewmodel.AccountViewModel
 import com.example.bookstore.viewmodel.CartViewModel
+import com.example.bookstore.viewmodel.WishlistViewModel
 
 @Composable
 fun MainScreen() {
     val navController    = rememberNavController()
     val cartViewModel    : CartViewModel    = hiltViewModel()
     val accountViewModel : AccountViewModel = hiltViewModel()
+    val wishlistViewModel: WishlistViewModel = hiltViewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -47,7 +49,7 @@ fun MainScreen() {
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            if (showBottomBar) AppBottomNavigation(navController = navController)
+            if (showBottomBar) AppBottomNavigation(navController = navController, cartCount = cartViewModel.cartItems.size)
         }
     ) { innerPadding ->
 
@@ -136,6 +138,7 @@ fun MainScreen() {
                         onAccountClick       = { navigateAsTab(BottomNavItem.Account.graphRoute) },
                         onSearchSubmit       = { query -> navController.navigate("search_results/$query") },
                         cartViewModel        = cartViewModel,
+                        wishlistViewModel    = wishlistViewModel,
                         onNavigateToCheckout = { navController.navigate("checkout") }
                     )
                 }
@@ -219,6 +222,9 @@ fun MainScreen() {
                 }
                 composable("contact") {
                     ContactScreen(navController = navController)
+                }
+                composable("wishlist") {
+                    WishlistScreen(navController = navController, wishlistViewModel = wishlistViewModel)
                 }
             }
 

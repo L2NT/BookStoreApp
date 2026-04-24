@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -56,8 +57,10 @@ fun DetailTopBar(
     onCartClick: () -> Unit,
     onAccountClick: () -> Unit,
     onCategoryClick: () -> Unit,
-    onSearchSubmit: (String) -> Unit)
-{
+    onSearchSubmit: (String) -> Unit,
+    // [THÊM MỚI — Ch.12 Wishlist] extra icon(s) trước nút Search (vd: nút ❤️ Wishlist)
+    extraActions: (@Composable RowScope.() -> Unit)? = null
+) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
@@ -131,6 +134,8 @@ fun DetailTopBar(
                 }
             },
             actions = {
+                // extraActions được render trước (vd: nút ❤️) — null thì bỏ qua
+                extraActions?.invoke(this)
                 IconButton(onClick = { isSearchActive = true }) { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) }
                 IconButton(onClick =  onHomeClick ) { Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White) }
                 IconButton(onClick =  onCartClick ) { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = Color.White) }

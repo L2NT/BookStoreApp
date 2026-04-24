@@ -33,23 +33,19 @@ Row(verticalAlignment = Alignment.CenterVertically) {
 
 **Data mẫu thầy có thể cung cấp:**
 ```json
-{
-  "bookId": "abc123",
-  "averageRating": 4.3,
-  "reviewCount": 128
-}
+{ "bookId": "abc123", "averageRating": 4.3, "reviewCount": 128 }
 ```
 
 ---
 
 ## 3. YÊU CẦU KẾT QUẢ (OUTPUT)
 
-**a.** Tạo `StarRating(rating: Double, maxStars: Int = 5, starSize: Dp = 16.dp)`:
-- Dùng `Icons.Default.Star` (đầy) và `Icons.Outlined.Star` (rỗng) từ Material Icons
+**a.** Tạo `StarRating(rating: Double, maxStars: Int = 5, starSize: Dp = 16.dp, showCount: Boolean = false, count: Int = 0)`:
+- Dùng `Icons.Default.Star` (đầy) và `Icons.Outlined.StarOutline` (rỗng) từ Material Icons
 - Tô màu `AppColors.StarYellow` cho sao đầy, `Color.LightGray` cho sao rỗng
-- Hỗ trợ half-star: `rating = 3.5` → 3 sao đầy + 1 sao nửa (dùng `Icons.AutoMirrored` hoặc clip)
+- Hỗ trợ half-star: `rating = 3.5` → 3 sao đầy + 1 sao nửa (`Icons.Default.StarHalf`)
 
-**b.** Tích hợp vào `BookCard.kt`: thay `repeat(5) { Text("★") }` bằng `StarRating(rating = rating.toDouble())`
+**b.** Tích hợp vào `BookCard.kt`: thay `repeat(5) { Text("★") }` bằng `StarRating(rating = rating.toDouble(), showCount = true, count = reviewCount)`
 
 **c.** **Demo:** Mở trang chủ → thấy sao icon Material đẹp hơn ký tự text, màu vàng rõ ràng.
 
@@ -57,12 +53,72 @@ Row(verticalAlignment = Alignment.CenterVertically) {
 
 ---
 
-## 4. GỢI Ý GIẢI THÍCH CHO THẦY
+## 4. TRƯỜNG HỢP INPUT / OUTPUT
+
+| `rating` | `maxStars` | Icons hiển thị |
+|---|---|---|
+| `0.0` | 5 | ☆☆☆☆☆ (5 StarOutline xám) |
+| `1.0` | 5 | ★☆☆☆☆ (1 Star vàng + 4 xám) |
+| `3.0` | 5 | ★★★☆☆ (3 Star vàng + 2 xám) |
+| `3.5` | 5 | ★★★⯨☆ (3 Star + 1 StarHalf vàng + 1 xám) |
+| `4.3` | 5 | ★★★★⯨ (4 Star + 1 StarHalf vàng — 4.3 >= 3.5) |
+| `5.0` | 5 | ★★★★★ (5 Star vàng) |
+| `2.0` | 3 | ★★★ (3 Star vàng — maxStars=3) |
+| `1.5` | 3 | ★⯨☆ (1 Star + 1 StarHalf + 1 xám) |
+
+### Logic chọn icon cho mỗi sao (vị trí `i`, `starValue = i+1`):
+```kotlin
+val icon = when {
+    rating >= starValue       -> Icons.Default.Star      // 4.3 >= 4 → sao đầy tại vị trí 4
+    rating >= starValue - 0.5 -> Icons.Default.StarHalf  // 4.3 >= 4.5? Không → xét tiếp
+                                                          // 4.3 >= 4.5 = false → StarOutline
+    else                      -> Icons.Outlined.StarOutline
+}
+// Ví dụ rating=4.3, starValue=5: 4.3 >= 5? No. 4.3 >= 4.5? No → StarOutline
+// Ví dụ rating=4.3, starValue=4: 4.3 >= 4? Yes → Star (đầy)
+```
+
+### Các variant thầy có thể yêu cầu:
+
+**Kích thước sao lớn hơn (cho BookDetailScreen):**
+```kotlin
+StarRating(rating = 4.3, starSize = 20.dp, showCount = true, count = 256)
+```
+
+**Chỉ hiển thị sao không có số lượt:**
+```kotlin
+StarRating(rating = 3.5)  // showCount mặc định = false
+```
+
+**10 sao thay vì 5 sao:**
+```kotlin
+StarRating(rating = 7.5, maxStars = 10)
+// → 7 Star + 1 StarHalf + 2 StarOutline
+```
+
+**Màu sao tùy chỉnh:**
+```kotlin
+@Composable
+fun StarRating(
+    rating: Double,
+    maxStars: Int = 5,
+    starSize: Dp = 16.dp,
+    filledColor: Color = AppColors.StarYellow,   // Thêm param màu
+    emptyColor: Color = Color.LightGray,
+    showCount: Boolean = false,
+    count: Int = 0
+)
+```
+
+---
+
+## 5. GỢI Ý GIẢI THÍCH CHO THẦY
 
 **Tại sao dùng Icon thay Text:**
 - `Icons.Default.Star` = vector drawable chuẩn Material, scale mượt hơn ký tự Unicode
 - Có thể tùy chỉnh `size`, `tint`, `modifier` dễ dàng
-- `Icons.Outlined.Star` cho sao rỗng — nhất quán với Design System
+- `Icons.Outlined.StarOutline` cho sao rỗng — nhất quán với Design System
+- `Icons.Default.StarHalf` cho nửa sao — không thể làm được với ký tự "★"
 
 **DRY (Don't Repeat Yourself):**
 ```kotlin
@@ -70,7 +126,19 @@ Row(verticalAlignment = Alignment.CenterVertically) {
 repeat(5) { i -> Text(if (i < rating) "★" else "☆", ...) }
 
 // Sau: 1 Composable dùng ở mọi nơi
-StarRating(rating = 4.3)  // ← đơn giản, nhất quán
+StarRating(rating = 4.3, showCount = true, count = 128)
+StarRating(rating = 4.3, starSize = 20.dp)  // Dùng ở BookDetailScreen
+StarRating(rating = review.rating.toDouble(), starSize = 14.dp)  // Dùng ở ReviewItem
+```
+
+**Half-star logic chi tiết:**
+```kotlin
+// Với rating = 3.5:
+// i=0, starValue=1: 3.5 >= 1 → Star (đầy)
+// i=1, starValue=2: 3.5 >= 2 → Star (đầy)
+// i=2, starValue=3: 3.5 >= 3 → Star (đầy)
+// i=3, starValue=4: 3.5 >= 4? No. 3.5 >= 3.5? Yes → StarHalf
+// i=4, starValue=5: 3.5 >= 5? No. 3.5 >= 4.5? No → StarOutline
 ```
 
 ---
@@ -98,4 +166,3 @@ StarRating(rating = 4.3)  // ← đơn giản, nhất quán
     └── ui/components/
         └── StarRating.kt    ← DROP-IN (Composable sao đánh giá tái sử dụng)
 ```
-

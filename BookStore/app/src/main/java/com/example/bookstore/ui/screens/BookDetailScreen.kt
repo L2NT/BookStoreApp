@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
@@ -32,9 +34,13 @@ import com.example.bookstore.ui.components.BookReviewsSection
 import com.example.bookstore.ui.components.BookSpecifications
 import com.example.bookstore.ui.components.DetailTopBar
 import com.example.bookstore.ui.components.RelatedProductsSection
+import com.example.bookstore.ui.components.StockBadge
 import com.example.bookstore.utils.displayPrice
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bookstore.ui.theme.AppColors
 import com.example.bookstore.viewmodel.BookDetailViewModel
 import com.example.bookstore.viewmodel.CartViewModel
+import com.example.bookstore.viewmodel.WishlistViewModel
 import kotlinx.coroutines.launch
 
 enum class BadgeType { None, Discount, New }
@@ -50,6 +56,7 @@ fun BookDetailScreen(
     onCategoryClick: () -> Unit,
     onSearchSubmit: (String) -> Unit,
     cartViewModel: CartViewModel,
+    wishlistViewModel: WishlistViewModel,
     onNavigateToCheckout: () -> Unit = {},
     viewModel: BookDetailViewModel = hiltViewModel(),
 ) {
@@ -58,6 +65,10 @@ fun BookDetailScreen(
     var quantity by remember { mutableStateOf(1) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    // Observe wishlist state để icon ❤️ recompose đúng
+    val wishlist by wishlistViewModel.wishlist.collectAsStateWithLifecycle()
+    val isWishlisted = book?.let { wishlist.any { w -> w.id == it.id } } ?: false
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -68,7 +79,16 @@ fun BookDetailScreen(
                 onCartClick = onCartClick,
                 onAccountClick = onAccountClick,
                 onCategoryClick = onCategoryClick,
-                onSearchSubmit = onSearchSubmit
+                onSearchSubmit = onSearchSubmit,
+                extraActions = {
+                    IconButton(onClick = { book?.let { wishlistViewModel.toggle(it) } }) {
+                        Icon(
+                            imageVector        = if (isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isWishlisted) "Bỏ yêu thích" else "Thêm yêu thích",
+                            tint               = if (isWishlisted) Color.Red else Color.White
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -112,6 +132,13 @@ fun BookDetailScreen(
                     .padding(innerPadding)
             ) {
                 item {BookImageHeader(imageUrl = book.imageUrl) }
+                item {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    ) {
+                        StockBadge(quantity = book.stockQuantity)
+                    }
+                }
                 item {BookBasicInfo(book = book) }
                 item { Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 8.dp) }
                 item { BookDescription(description = book.describe) }

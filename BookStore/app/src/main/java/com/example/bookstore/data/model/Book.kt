@@ -6,5 +6,6 @@ data class Book(
     val describe: String,
     val author: String,
     val imageUrl: String,
-    val price: Double = 0.0
+    val price: Double = 0.0,
+    val stockQuantity: Int = 10
 )

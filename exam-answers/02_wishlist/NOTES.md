@@ -42,11 +42,126 @@
 
 ---
 
-## 4. GỢI Ý GIẢI THÍCH CHO THẦY
+## 4. TRƯỜNG HỢP INPUT / OUTPUT
 
-- **ViewModel hoisting**: nếu mỗi screen dùng `hiltViewModel()` riêng trong NavBackStackEntry scope → mỗi màn hình có instance khác nhau → data không đồng bộ. Hoist tại `MainScreen` → 1 instance duy nhất chia sẻ cho tất cả.
-- **StateFlow + collectAsState**: khi wishlist thay đổi → icon ❤️ tự recompose ngay, WishlistScreen tự cập nhật → reactive UI.
-- **toggle()**: dùng `any { it.id == book.id }` để check → nếu có thì filter ra (xóa), nếu chưa có thì `+ book` (thêm) — functional style của Kotlin.
+### WishlistViewModel.toggle():
+
+| Trạng thái trước | Input | Kết quả |
+|---|---|---|
+| `wishlist = []` | `toggle(bookA)` | `wishlist = [bookA]` |
+| `wishlist = [bookA]` | `toggle(bookA)` | `wishlist = []` *(xóa)* |
+| `wishlist = [bookA]` | `toggle(bookB)` | `wishlist = [bookA, bookB]` |
+| `wishlist = [bookA, bookB]` | `toggle(bookA)` | `wishlist = [bookB]` *(xóa bookA)* |
+
+### Icon ❤️ trong BookDetailScreen:
+
+| `isWishlisted` | Icon hiển thị | Màu |
+|---|---|---|
+| `false` | `FavoriteBorder` (❤️ rỗng) | Trắng |
+| `true` | `Favorite` (❤️ đầy) | `Color.Red` |
+
+### WishlistScreen:
+
+| Trạng thái wishlist | UI hiển thị |
+|---|---|
+| `wishlist.isEmpty()` | "❤️ Chưa có sách yêu thích" + hướng dẫn |
+| `wishlist = [bookA, bookB]` | LazyColumn 2 item, mỗi item có nút 🗑️ xóa |
+
+### Các variant thầy có thể yêu cầu:
+
+**Thêm hàm `addAll(books: List<Book>)` để import danh sách:**
+```kotlin
+fun addAll(books: List<Book>) {
+    val current = _wishlist.value
+    val newBooks = books.filter { book -> current.none { it.id == book.id } }
+    _wishlist.value = current + newBooks
+}
+```
+
+**Sắp xếp wishlist theo thứ tự thêm vào (mới nhất đầu tiên):**
+```kotlin
+fun toggle(book: Book) {
+    val current = _wishlist.value
+    _wishlist.value = if (current.any { it.id == book.id }) {
+        current.filter { it.id != book.id }
+    } else {
+        listOf(book) + current   // ← thêm vào ĐẦU thay vì cuối
+    }
+}
+```
+
+**WishlistScreen có nút "Thêm vào giỏ hàng" từ wishlist:**
+```kotlin
+@Composable
+fun WishlistScreen(
+    navController: NavController,
+    wishlistViewModel: WishlistViewModel,
+    cartViewModel: CartViewModel    // ← thêm param
+) {
+    // ...
+    WishlistItem(
+        book     = book,
+        onRemove = { wishlistViewModel.remove(book.id) },
+        onAddToCart = { cartViewModel.addBook(book, 1) }  // ← nút mới
+    )
+}
+```
+
+**Hiển thị số lượng sách yêu thích trên AccountScreen:**
+```kotlin
+// Trong AccountMenuItem hoặc menu label
+Text("Sách yêu thích (${wishlistViewModel.wishlist.value.size})")
+```
+
+---
+
+## 5. GỢI Ý GIẢI THÍCH CHO THẦY
+
+**ViewModel hoisting:**
+- Nếu mỗi screen dùng `hiltViewModel()` riêng trong NavBackStackEntry scope → mỗi màn hình có instance khác nhau → data không đồng bộ
+- Hoist tại `MainScreen` → 1 instance duy nhất chia sẻ cho tất cả → bấm ❤️ ở BookDetail → WishlistScreen cập nhật ngay
+
+**So sánh CartViewModel vs WishlistViewModel:**
+```kotlin
+// CartViewModel dùng mutableStateListOf — Compose State
+val cartItems = mutableStateListOf<CartItem>()
+// Đọc: cartViewModel.cartItems.size — tự recompose
+
+// WishlistViewModel dùng MutableStateFlow — Kotlin Flow
+val wishlist: StateFlow<List<Book>> = _wishlist.asStateFlow()
+// Đọc: wishlistViewModel.wishlist.collectAsStateWithLifecycle()
+// → Phải collect, nhưng lifecycle-aware (pause khi app background)
+```
+
+**toggle() — functional style:**
+```kotlin
+fun toggle(book: Book) {
+    val current = _wishlist.value
+    _wishlist.value = if (current.any { it.id == book.id }) {
+        current.filter { it.id != book.id }   // Xóa: tạo List mới không có book
+    } else {
+        current + book                          // Thêm: tạo List mới có thêm book
+    }
+}
+// Không mutate list trực tiếp (immutable style) → StateFlow emit value mới → UI recompose
+```
+
+**extraActions trong DetailTopBar:**
+```kotlin
+// DetailTopBar nhận optional lambda để render thêm action icons
+extraActions: (@Composable RowScope.() -> Unit)? = null
+
+// Khi gọi từ BookDetailScreen:
+extraActions = {
+    IconButton(onClick = { book?.let { wishlistViewModel.toggle(it) } }) {
+        Icon(
+            imageVector = if (isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            tint        = if (isWishlisted) Color.Red else Color.White
+        )
+    }
+}
+// Nếu không truyền extraActions → DetailTopBar bỏ qua (null check), không ảnh hưởng màn hình khác
+```
 
 ---
 
@@ -65,4 +180,3 @@
 
 > ⚠️ **Sau khi kéo thả → Build → Rebuild Project → Run.**  
 > ⚠️ `MainScreen.kt` là file lớn — REPLACE sẽ xóa toàn bộ nội dung cũ, thay bằng file đã thêm Wishlist.
-

@@ -46,7 +46,56 @@ Scaffold(
 
 ---
 
-## 4. GỢI Ý GIẢI THÍCH CHO THẦY
+## 4. TRƯỜNG HỢP INPUT / OUTPUT
+
+| `cartCount` | Hiển thị badge | Nội dung badge |
+|---|---|---|
+| `0` | Không hiện badge | *(không có gì)* |
+| `1` | 🔴 Badge đỏ | `"1"` |
+| `5` | 🔴 Badge đỏ | `"5"` |
+| `99` | 🔴 Badge đỏ | `"99"` |
+| `100` | 🔴 Badge đỏ | `"99+"` *(overflow)* |
+| `999` | 🔴 Badge đỏ | `"99+"` *(overflow)* |
+
+### Các variant thầy có thể yêu cầu:
+
+**Hiển thị trên nhiều tab cùng lúc (vd: Account cũng có badge thông báo):**
+```kotlin
+@Composable
+fun AppBottomNavigation(
+    navController: NavController,
+    cartCount: Int = 0,
+    notificationCount: Int = 0   // Badge mới cho Account tab
+) {
+    // ...
+    if (item == BottomNavItem.Cart && cartCount > 0) {
+        BadgedBox(badge = { Badge { Text(...) } }) { Icon(...) }
+    } else if (item == BottomNavItem.Account && notificationCount > 0) {
+        BadgedBox(badge = { Badge { Text(...) } }) { Icon(...) }
+    } else {
+        Icon(...)
+    }
+}
+```
+
+**Badge không có số (chỉ chấm đỏ):**
+```kotlin
+BadgedBox(badge = { Badge() /* không có content → chỉ chấm đỏ */ }) {
+    Icon(...)
+}
+```
+
+**Thay màu badge:**
+```kotlin
+Badge(
+    containerColor = Color(0xFFFF5722),   // Cam thay vì đỏ
+    contentColor   = Color.White
+) { Text(cartCount.toString()) }
+```
+
+---
+
+## 5. GỢI Ý GIẢI THÍCH CHO THẦY
 
 **Tại sao badge tự cập nhật:**
 ```kotlin
@@ -58,10 +107,19 @@ val cartItems = mutableStateListOf<CartItem>()
 val cartCount = cartViewModel.cartItems.size  // ← đọc trực tiếp = tự subscribe
 ```
 
+**So sánh với StateFlow (WishlistViewModel):**
+```kotlin
+// mutableStateListOf → Compose State, đọc trực tiếp .size
+cartViewModel.cartItems.size           // ← đủ, không cần collect
+
+// MutableStateFlow → Flow, phải collect
+wishlistViewModel.wishlist.collectAsStateWithLifecycle()  // ← bắt buộc
+```
+
 **BadgedBox — Material3 API:**
 ```kotlin
 BadgedBox(
-    badge = { Badge { Text(cartCount.toString()) } }
+    badge = { Badge { Text(if (cartCount > 99) "99+" else cartCount.toString()) } }
 ) {
     Icon(item.icon, contentDescription = item.title)
 }
@@ -97,4 +155,3 @@ BadgedBox(
     └── ui/screens/
         └── MainScreen.kt             ← REPLACE (truyền cartItems.size)
 ```
-

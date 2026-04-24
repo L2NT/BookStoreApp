@@ -99,22 +99,12 @@ fun BookCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    // Sao + số lượt đánh giá
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        repeat(5) { i ->
-                            Text(
-                                text  = if (i < rating) "★" else "☆",
-                                color = if (i < rating) AppColors.StarYellow else Color.LightGray,
-                                fontSize = 12.sp
-                            )
-                        }
-                        Spacer(Modifier.width(3.dp))
-                        Text(
-                            text     = "($reviewCount)",
-                            color    = Color.Gray,
-                            fontSize = 10.sp
-                        )
-                    }
+                    // Sao + số lượt đánh giá — dùng StarRating component (hỗ trợ half-star)
+                    StarRating(
+                        rating    = rating.toDouble(),
+                        showCount = true,
+                        count     = reviewCount
+                    )
                 }
 
                 Column {
