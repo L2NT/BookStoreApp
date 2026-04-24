@@ -247,7 +247,7 @@ private fun OrderStatusItem(icon: ImageVector, label: String) {
             Icon(icon, contentDescription = label, tint = Color.DarkGray, modifier = Modifier.size(26.dp))
         }
         Spacer(Modifier.height(4.dp))
-        Text(label, fontSize = 11.sp, color = Color.DarkGray, modifier = Modifier.widthIn(max = 72.dp))
+        Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), modifier = Modifier.widthIn(max = 72.dp))
     }
 }
 
