@@ -1,181 +1,82 @@
-# BÀI TẬP KIỂM TRA THỰC HÀNH
-**Dành cho:** Nhóm 35 — Kotlin Jetpack Compose  
-**Tham chiếu:** Chương 12 — Mục 12.1.3: Hỗ trợ chế độ tối (Dark Mode)
+# 01 — DARK MODE
+**Tham chiếu:** Chương 12 — Mục 12.1.3  
+**Loại:** ViewModel + StateFlow + MaterialTheme động
 
 ---
 
-## 1. ĐỀ BÀI
+## ĐỀ GỐC
 
-**Mục tiêu:** Kiểm tra kỹ năng áp dụng MaterialTheme động và quản lý trạng thái UI toàn cục với ViewModel + StateFlow trong Jetpack Compose.
-
-**Yêu cầu:** Ứng dụng BookStore hiện chỉ hỗ trợ Light Theme cố định. Dựa trên hướng phát triển đã đề xuất trong báo cáo (Mục 12.1.3), hãy implement tính năng Dark Mode cho phép người dùng chuyển đổi giao diện sáng/tối ngay trong màn hình Cài đặt.
-
----
-
-## 2. DỮ LIỆU ĐẦU VÀO (INPUT) — Code hiện tại bị thiếu
-
+### Input — Code hiện tại (bị thiếu):
 ```kotlin
-// Theme.kt — lightColorScheme cứng, không có tham số isDarkTheme
+// ui/theme/Theme.kt
 @Composable
 fun BookStoreTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = BookStoreColorScheme, // ← chỉ có light, không thay đổi được
+        colorScheme = lightColorScheme(...),   // ← cứng, không đổi được
         content = content
     )
 }
 
-// MainActivity.kt — không có ThemeViewModel, theme cố định
+// MainActivity.kt
 setContent {
-    BookStoreTheme {   // ← không nhận isDarkTheme
+    BookStoreTheme {          // ← không nhận isDarkTheme
         MainScreen()
     }
 }
 
-// SettingsScreen.kt — không có Switch Dark Mode
-// (chỉ có 2 item: Đổi mật khẩu, Yêu cầu xóa tài khoản)
+// SettingsScreen.kt — chỉ có 2 item, KHÔNG có Switch Dark Mode
 ```
 
----
+### Output — Kết quả cần đạt:
+- `SettingsScreen` có dòng **"Chế độ tối"** kèm `Switch`
+- Bật Switch → **toàn app tối ngay lập tức** (nền đen, chữ trắng)
+- Tắt Switch → về sáng
+- Chuyển màn hình khác rồi quay lại Settings → Switch vẫn đúng trạng thái
 
-## 3. YÊU CẦU KẾT QUẢ (OUTPUT)
+### File path các file thực hiện:
+```
+app/src/main/java/com/example/bookstore/
+├── MainActivity.kt                        ← SỬA
+├── viewmodel/ThemeViewModel.kt            ← TẠO MỚI
+├── ui/theme/Theme.kt                      ← SỬA
+└── ui/screens/SettingsScreen.kt           ← SỬA
+```
 
-**a.** Tạo `ThemeViewModel`: dùng `StateFlow<Boolean>` lưu trạng thái `isDarkTheme`, hàm `toggleTheme()`.
+### Cần thêm/sửa gì ở từng file:
 
-**b.** Sửa `Theme.kt`: nhận param `isDarkTheme: Boolean`, dùng `darkColorScheme` hoặc `lightColorScheme` tương ứng.
-
-**c.** Sửa `MainActivity.kt`: inject `ThemeViewModel` bằng `by viewModels()`, collect `isDarkTheme`, truyền vào `BookStoreTheme`.
-
-**d.** Sửa `SettingsScreen.kt`: thêm Switch "Chế độ tối", connect với `ThemeViewModel` (lấy instance Activity-scope).
-
-**e.** **Demo:** bật Switch → toàn bộ app chuyển dark ngay lập tức, tắt Switch → về light.
-
-**f.** **Giải thích:** Tại sao `ThemeViewModel` phải được hoist ở `MainActivity` thay vì trong `SettingsScreen`? Tại sao dùng `StateFlow` thay vì biến `Boolean` thông thường?
-
----
-
-## 4. TRƯỜNG HỢP INPUT / OUTPUT
-
-### ThemeViewModel.toggleTheme():
-
-| Trạng thái trước | Gọi | Kết quả | UI |
-|---|---|---|---|
-| `isDarkTheme = false` | `toggleTheme()` | `isDarkTheme = true` | Toàn app → Dark |
-| `isDarkTheme = true` | `toggleTheme()` | `isDarkTheme = false` | Toàn app → Light |
-
-### BookStoreTheme(isDarkTheme):
-
-| `isDarkTheme` | colorScheme dùng | background | surface | onBackground |
-|---|---|---|---|---|
-| `false` | `lightColorScheme` | ⬜ Trắng / Sáng | ⬜ Trắng | ⬛ Đen |
-| `true` | `darkColorScheme` | ⬛ Xám đậm | ⬛ Xám đậm | ⬜ Trắng |
-
-### Switch trong SettingsScreen:
-
-| Người dùng | Action | Switch state | Theme |
-|---|---|---|---|
-| Mở Settings lần đầu | *(hiển thị)* | OFF (false) | Light |
-| Bật Switch | `toggleTheme()` | ON (true) | Dark ngay lập tức |
-| Tắt Switch | `toggleTheme()` | OFF (false) | Light ngay lập tức |
-| Back → mở lại Settings | *(recompose)* | ON/OFF theo ViewModel state | Giữ nguyên |
-
-### Các variant thầy có thể yêu cầu:
-
-**3 chế độ: Light / Dark / Theo hệ thống:**
+**ThemeViewModel.kt** ← TẠO MỚI:
 ```kotlin
-// ThemeViewModel
-enum class ThemeMode { LIGHT, DARK, SYSTEM }
-private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
-val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+@HiltViewModel
+class ThemeViewModel @Inject constructor() : ViewModel() {
+    private val _isDarkTheme = MutableStateFlow(false)
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
-fun setTheme(mode: ThemeMode) { _themeMode.value = mode }
-
-// Theme.kt
-@Composable
-fun BookStoreTheme(themeMode: ThemeMode, content: @Composable () -> Unit) {
-    val systemIsDark = isSystemInDarkTheme()
-    val isDark = when (themeMode) {
-        ThemeMode.LIGHT  -> false
-        ThemeMode.DARK   -> true
-        ThemeMode.SYSTEM -> systemIsDark   // Theo hệ thống
+    fun toggleTheme() {
+        _isDarkTheme.value = !_isDarkTheme.value
     }
+}
+```
+
+**Theme.kt** ← thêm param `isDarkTheme`:
+```kotlin
+// TRƯỚC:
+fun BookStoreTheme(content: @Composable () -> Unit)
+
+// SAU:
+fun BookStoreTheme(isDarkTheme: Boolean = false, content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = if (isDark) darkColorScheme() else lightColorScheme(),
+        colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme(),
         content = content
     )
 }
 ```
 
-**Lưu theme vào DataStore (persist sau khi tắt app):**
+**MainActivity.kt** ← inject ViewModel + collect:
 ```kotlin
-// ThemeViewModel — lưu vào SharedPreferences hoặc DataStore
-@HiltViewModel
-class ThemeViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>
-) : ViewModel() {
-    val isDarkTheme = dataStore.data.map { prefs ->
-        prefs[booleanPreferencesKey("dark_mode")] ?: false
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+// Thêm:
+private val themeViewModel: ThemeViewModel by viewModels()
 
-    fun toggleTheme() {
-        viewModelScope.launch {
-            dataStore.edit { prefs ->
-                val current = prefs[booleanPreferencesKey("dark_mode")] ?: false
-                prefs[booleanPreferencesKey("dark_mode")] = !current
-            }
-        }
-    }
-}
-```
-
-**Switch với icon mặt trời/mặt trăng:**
-```kotlin
-// SettingsScreen — Switch tùy chỉnh hơn
-Row(modifier = Modifier.fillMaxWidth(), ...) {
-    Icon(
-        imageVector = if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
-        tint = if (isDarkTheme) Color(0xFFFFD700) else Color(0xFFFFA000)
-    )
-    Spacer(Modifier.width(12.dp))
-    Text(if (isDarkTheme) "Chế độ tối" else "Chế độ sáng")
-    Spacer(Modifier.weight(1f))
-    Switch(
-        checked = isDarkTheme,
-        onCheckedChange = { themeViewModel.toggleTheme() }
-    )
-}
-```
-
----
-
-## 5. GỢI Ý GIẢI THÍCH CHO THẦY
-
-**Tại sao ThemeViewModel phải hoist ở Activity:**
-- Theme bọe toàn bộ `setContent { BookStoreTheme { ... } }` — nó phải được cấp trên tất cả Composable
-- Nếu chỉ lưu trong SettingsScreen ViewModel (NavBackStackEntry scope) → khi back khỏi Settings, ViewModel bị hủy → theme reset về mặc định
-- `by viewModels()` trong Activity → ViewModel sống cùng Activity → persist suốt phiên dùng app
-
-**StateFlow vs Boolean thường:**
-```kotlin
-// Boolean thường — không reactive
-var isDark = false
-// ← Khi thay đổi, Compose KHÔNG biết để recompose → UI không cập nhật
-
-// StateFlow — reactive
-val _isDark = MutableStateFlow(false)
-// ← Khi emit value mới, tất cả collector tự recompose ngay lập tức
-```
-
-**Collect ở Activity — cách đặc biệt:**
-```kotlin
-// MainActivity — dùng lifecycleScope + repeatOnLifecycle (KHÔNG dùng collectAsState)
-lifecycleScope.launch {
-    repeatOnLifecycle(Lifecycle.State.STARTED) {
-        themeViewModel.isDarkTheme.collect { isDark ->
-            // recompose setContent với isDark mới
-        }
-    }
-}
-// Hoặc đơn giản hơn với collectAsState trong setContent { ... }
+// Trong onCreate → setContent:
 val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 setContent {
     BookStoreTheme(isDarkTheme = isDarkTheme) {
@@ -184,39 +85,155 @@ setContent {
 }
 ```
 
-**darkColorScheme / lightColorScheme — Material3:**
-- Tất cả component Material3 (`Card`, `Button`, `TextField`, `NavigationBar`...) tự động dùng đúng màu theo scheme
-- Không cần sửa từng màn hình — chỉ cần component dùng `MaterialTheme.colorScheme.*` thay vì hardcode màu
+**SettingsScreen.kt** ← thêm Switch row:
+```kotlin
+// Thêm param:
+fun SettingsScreen(navController: NavController, themeViewModel: ThemeViewModel = ...)
 
----
+// Thêm vào danh sách item:
+val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
 
-## 📦 HƯỚNG DẪN KÉO THẢ
-
-**Kéo thư mục `app/` vào thư mục `BookStore/` — chọn Replace khi được hỏi.**
-
-| File | Loại | Giải quyết yêu cầu |
-|------|------|-------------------|
-| `viewmodel/ThemeViewModel.kt` | ✅ DROP-IN (file mới) | Yêu cầu **(a)** — StateFlow + toggleTheme |
-| `ui/theme/Theme.kt` | 🔄 REPLACE | Yêu cầu **(b)** — isDarkTheme param + darkColorScheme |
-| `MainActivity.kt` | 🔄 REPLACE | Yêu cầu **(c)** — inject ThemeViewModel, collect state |
-| `ui/screens/SettingsScreen.kt` | 🔄 REPLACE | Yêu cầu **(d)** — Switch Dark Mode UI |
-
-> ⚠️ **Không cần kéo thả nếu thầy chỉ hỏi giải thích lý thuyết.**  
-> ⚠️ Sau khi kéo thả → nhấn **Build → Rebuild Project** → Run app.
-
----
-
-## 📁 Nội dung folder này
-
+Row(...) {
+    Text("Chế độ tối")
+    Switch(checked = isDarkTheme, onCheckedChange = { themeViewModel.toggleTheme() })
+}
 ```
-01_dark_mode/
-├── NOTES.md
-└── app/src/main/java/com/example/bookstore/
-    ├── MainActivity.kt                  ← REPLACE
-    ├── viewmodel/
-    │   └── ThemeViewModel.kt            ← DROP-IN (file mới)
-    ├── ui/theme/
-    │   └── Theme.kt                     ← REPLACE
-    └── ui/screens/
-        └── SettingsScreen.kt            ← REPLACE
+
+---
+
+## ĐỀ BIẾN THỂ — Các dạng thầy có thể ra
+
+---
+
+### Đề 2: Thêm icon mặt trời/mặt trăng vào Switch
+
+**Input:** Switch chỉ có text "Chế độ tối", không có icon
+
+**Output:** Row hiển thị icon 🌙 khi dark / ☀️ khi light, kèm Switch bên phải
+
+**Cách sửa SettingsScreen:**
+```kotlin
+val icon = if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode
+val label = if (isDarkTheme) "Chế độ tối" else "Chế độ sáng"
+
+Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+    Icon(icon, contentDescription = null, tint = if (isDarkTheme) Color(0xFFFFD700) else Color(0xFFFFA000))
+    Spacer(Modifier.width(12.dp))
+    Text(label, modifier = Modifier.weight(1f), fontSize = 14.sp)
+    Switch(checked = isDarkTheme, onCheckedChange = { themeViewModel.toggleTheme() })
+}
+```
+
+---
+
+### Đề 3: 3 lựa chọn thay vì 1 Switch (Light / Dark / Theo hệ thống)
+
+**Input:** Switch chỉ có 2 trạng thái on/off
+
+**Output:** 3 nút radio: ☀ Sáng | 🌙 Tối | 📱 Theo hệ thống
+
+**Cách sửa ThemeViewModel:**
+```kotlin
+enum class ThemeMode { LIGHT, DARK, SYSTEM }
+
+private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+fun setTheme(mode: ThemeMode) { _themeMode.value = mode }
+```
+
+**Cách sửa Theme.kt:**
+```kotlin
+fun BookStoreTheme(themeMode: ThemeMode, content: @Composable () -> Unit) {
+    val systemIsDark = isSystemInDarkTheme()
+    val isDark = when (themeMode) {
+        ThemeMode.LIGHT  -> false
+        ThemeMode.DARK   -> true
+        ThemeMode.SYSTEM -> systemIsDark
+    }
+    MaterialTheme(colorScheme = if (isDark) darkColorScheme() else lightColorScheme(), content = content)
+}
+```
+
+**Cách sửa SettingsScreen:**
+```kotlin
+val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
+
+listOf(ThemeMode.LIGHT to "Sáng", ThemeMode.DARK to "Tối", ThemeMode.SYSTEM to "Theo hệ thống")
+    .forEach { (mode, label) ->
+        Row(modifier = Modifier.clickable { themeViewModel.setTheme(mode) }.padding(16.dp)) {
+            RadioButton(selected = themeMode == mode, onClick = { themeViewModel.setTheme(mode) })
+            Text(label)
+        }
+    }
+```
+
+---
+
+### Đề 4: Lưu setting vào SharedPreferences (giữ sau khi tắt app)
+
+**Input:** ThemeViewModel chỉ dùng StateFlow trong RAM — tắt app là mất
+
+**Output:** Bật dark mode → tắt app → mở lại → vẫn dark
+
+**Cách sửa ThemeViewModel:**
+```kotlin
+@HiltViewModel
+class ThemeViewModel @Inject constructor(
+    @ApplicationContext private val context: Context
+) : ViewModel() {
+    private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    private val _isDarkTheme = MutableStateFlow(prefs.getBoolean("dark_mode", false))
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
+
+    fun toggleTheme() {
+        val newValue = !_isDarkTheme.value
+        _isDarkTheme.value = newValue
+        prefs.edit().putBoolean("dark_mode", newValue).apply()  // ← lưu vào disk
+    }
+}
+```
+
+---
+
+### Đề 5: Dark mode chỉ áp dụng cho HomeScreen, không áp dụng toàn app
+
+**Input:** isDarkTheme bọc cả app trong `BookStoreTheme`
+
+**Output:** Chỉ HomeScreen đổi màu nền, các màn hình khác vẫn sáng
+
+**Cách sửa:** Không truyền isDarkTheme vào `BookStoreTheme`, thay vào đó truyền vào HomeScreen:
+```kotlin
+// HomeScreen nhận isDarkTheme và tự đổi nền
+@Composable
+fun HomeScreen(..., isDarkTheme: Boolean) {
+    val bgColor = if (isDarkTheme) Color(0xFF121212) else Color.White
+    Column(modifier = Modifier.background(bgColor)) { ... }
+}
+```
+> ⚠️ Đây là anti-pattern — chỉ làm nếu thầy yêu cầu cụ thể. Cách đúng là dùng MaterialTheme toàn app.
+
+---
+
+### Giải thích kỹ thuật cốt lõi
+
+**Tại sao ThemeViewModel phải ở Activity scope, không phải NavGraph scope:**
+```
+Activity (sống cả phiên app)
+└── setContent { BookStoreTheme(isDarkTheme) { NavHost { ... } } }
+                ↑ Theme bọc NGOÀI NavHost → phải biết isDarkTheme TRƯỚC khi vào NavHost
+
+NavGraph scope (chết khi navigate away)
+└── SettingsScreen → WishlistScreen → ... → có thể bị hủy
+```
+→ Nếu ThemeViewModel sống trong NavGraph → bị hủy khi navigate → theme reset.
+
+**StateFlow vs mutableStateOf trong Activity:**
+```kotlin
+// mutableStateOf — chỉ hoạt động trong @Composable
+var isDark by mutableStateOf(false)  // ← KHÔNG dùng trong Activity class
+
+// StateFlow — hoạt động cả trong Activity và ViewModel
+val isDark: StateFlow<Boolean>       // ← đúng cách
 ```

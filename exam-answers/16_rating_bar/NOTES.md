@@ -1,26 +1,18 @@
-# BÀI TẬP KIỂM TRA THỰC HÀNH
-**Dành cho:** Nhóm 35 — Kotlin Jetpack Compose  
-**Tham chiếu:** Chương 12 — Mục 12.1.1: Tích hợp đánh giá nâng cao  
-**Loại:** 🟦 Pattern B — Mở rộng UI (tạo Composable con tái sử dụng)
+# 16 — STAR RATING (ĐÁNH GIÁ SAO)
+**Tham chiếu:** Chương 12 — Mục 12.1.1  
+**Loại:** Pure Composable — Double → repeat(maxStars) → Icon (Star/StarHalf/StarOutline)
 
 ---
 
-## 1. ĐỀ BÀI
+## ĐỀ GỐC
 
-**Mục tiêu:** Kiểm tra kỹ năng tạo Composable nhận dữ liệu số và render UI động. Bài tập này tạo component `StarRating` hiển thị sao đánh giá với icon Material Icons.
-
-**Yêu cầu:** Hiện tại `BookCard` hiển thị sao bằng Text ký tự "★"/"☆". Tách thành Composable `StarRating(rating: Double, maxStars: Int = 5)` tái sử dụng được, dùng `Icon` Material với màu đúng chuẩn.
-
----
-
-## 2. DỮ LIỆU ĐẦU VÀO (INPUT) — Code hiện tại trong BookCard
-
+### Input — Code hiện tại (dùng ký tự Text, không tái sử dụng):
 ```kotlin
-// BookCard.kt — sao render bằng Text thủ công, không tái sử dụng
+// BookCard.kt — sao render bằng ký tự Unicode "★"/"☆"
 Row(verticalAlignment = Alignment.CenterVertically) {
     repeat(5) { i ->
         Text(
-            text     = if (i < rating) "★" else "☆",   // ← Ký tự text, không phải Icon
+            text     = if (i < rating) "★" else "☆",
             color    = if (i < rating) AppColors.StarYellow else Color.LightGray,
             fontSize = 12.sp
         )
@@ -28,141 +20,242 @@ Row(verticalAlignment = Alignment.CenterVertically) {
     Spacer(Modifier.width(3.dp))
     Text(text = "($reviewCount)", color = Color.Gray, fontSize = 10.sp)
 }
-// ← Không tái sử dụng được, không hỗ trợ half-star, không nhận Double rating
+// Vấn đề:
+// ← rating là Int → chỉ hiện 3 hoặc 4 sao, không hiện 3.5
+// ← ký tự "★" scale kém, không tùy chỉnh được size/tint
+// ← copy-paste ở nhiều chỗ, không tái sử dụng
 ```
 
-**Data mẫu thầy có thể cung cấp:**
-```json
-{ "bookId": "abc123", "averageRating": 4.3, "reviewCount": 128 }
+### Output — Kết quả cần đạt:
+- File `StarRating.kt` mới trong `ui/components/`
+- Hỗ trợ **half-star**: rating `3.5` → ★★★⯨☆ (3 đầy + 1 nửa + 1 rỗng)
+- BookCard dùng `StarRating(rating = rating.toDouble(), showCount = true, count = reviewCount)`
+- Sao dùng `Icon` Material vector (sắc nét hơn, scale tốt hơn ký tự Unicode)
+
+### File path các file thực hiện:
+```
+app/src/main/java/com/example/bookstore/
+├── ui/components/StarRating.kt             ← TẠO MỚI
+└── ui/components/BookCard.kt              ← SỬA (thay inline bằng StarRating)
 ```
 
----
+### Cần thêm/sửa gì ở từng file:
 
-## 3. YÊU CẦU KẾT QUẢ (OUTPUT)
-
-**a.** Tạo `StarRating(rating: Double, maxStars: Int = 5, starSize: Dp = 16.dp, showCount: Boolean = false, count: Int = 0)`:
-- Dùng `Icons.Default.Star` (đầy) và `Icons.Outlined.StarOutline` (rỗng) từ Material Icons
-- Tô màu `AppColors.StarYellow` cho sao đầy, `Color.LightGray` cho sao rỗng
-- Hỗ trợ half-star: `rating = 3.5` → 3 sao đầy + 1 sao nửa (`Icons.Default.StarHalf`)
-
-**b.** Tích hợp vào `BookCard.kt`: thay `repeat(5) { Text("★") }` bằng `StarRating(rating = rating.toDouble(), showCount = true, count = reviewCount)`
-
-**c.** **Demo:** Mở trang chủ → thấy sao icon Material đẹp hơn ký tự text, màu vàng rõ ràng.
-
-**d.** **Giải thích:** Lợi ích của component tái sử dụng vs. inline code (DRY principle).
-
----
-
-## 4. TRƯỜNG HỢP INPUT / OUTPUT
-
-| `rating` | `maxStars` | Icons hiển thị |
-|---|---|---|
-| `0.0` | 5 | ☆☆☆☆☆ (5 StarOutline xám) |
-| `1.0` | 5 | ★☆☆☆☆ (1 Star vàng + 4 xám) |
-| `3.0` | 5 | ★★★☆☆ (3 Star vàng + 2 xám) |
-| `3.5` | 5 | ★★★⯨☆ (3 Star + 1 StarHalf vàng + 1 xám) |
-| `4.3` | 5 | ★★★★⯨ (4 Star + 1 StarHalf vàng — 4.3 >= 3.5) |
-| `5.0` | 5 | ★★★★★ (5 Star vàng) |
-| `2.0` | 3 | ★★★ (3 Star vàng — maxStars=3) |
-| `1.5` | 3 | ★⯨☆ (1 Star + 1 StarHalf + 1 xám) |
-
-### Logic chọn icon cho mỗi sao (vị trí `i`, `starValue = i+1`):
+**StarRating.kt** ← TẠO MỚI — logic half-star:
 ```kotlin
-val icon = when {
-    rating >= starValue       -> Icons.Default.Star      // 4.3 >= 4 → sao đầy tại vị trí 4
-    rating >= starValue - 0.5 -> Icons.Default.StarHalf  // 4.3 >= 4.5? Không → xét tiếp
-                                                          // 4.3 >= 4.5 = false → StarOutline
-    else                      -> Icons.Outlined.StarOutline
+@Composable
+fun StarRating(
+    rating   : Double,
+    maxStars : Int     = 5,
+    starSize : Dp      = 16.dp,
+    showCount: Boolean = false,
+    count    : Int     = 0
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        repeat(maxStars) { i ->
+            val starValue = i + 1   // vị trí 0 → starValue 1, vị trí 4 → starValue 5
+
+            // Logic chọn icon:
+            // rating >= starValue     → sao ĐẦY  (ví dụ: rating=4.3, starValue=4  → 4.3>=4 ✓)
+            // rating >= starValue-0.5 → nửa sao  (ví dụ: rating=4.3, starValue=5  → 4.3>=4.5 ✗ → StarOutline)
+            //                                     (ví dụ: rating=3.5, starValue=4  → 3.5>=3.5 ✓ → StarHalf)
+            // else                   → sao RỖNG
+            val icon = when {
+                rating >= starValue       -> Icons.Default.Star
+                rating >= starValue - 0.5 -> Icons.Default.StarHalf
+                else                      -> Icons.Outlined.StarOutline
+            }
+            val tint = if (rating >= starValue - 0.5) AppColors.StarYellow else Color.LightGray
+
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(starSize))
+        }
+        if (showCount && count > 0) {
+            Spacer(Modifier.width(3.dp))
+            Text("($count)", color = Color.Gray, fontSize = 10.sp)
+        }
+    }
 }
-// Ví dụ rating=4.3, starValue=5: 4.3 >= 5? No. 4.3 >= 4.5? No → StarOutline
-// Ví dụ rating=4.3, starValue=4: 4.3 >= 4? Yes → Star (đầy)
 ```
 
-### Các variant thầy có thể yêu cầu:
-
-**Kích thước sao lớn hơn (cho BookDetailScreen):**
+**BookCard.kt** ← SỬA thay inline bằng component:
 ```kotlin
-StarRating(rating = 4.3, starSize = 20.dp, showCount = true, count = 256)
+// TRƯỚC — 9 dòng:
+Row(verticalAlignment = Alignment.CenterVertically) {
+    repeat(5) { i ->
+        Text(text = if (i < rating) "★" else "☆",
+             color = if (i < rating) AppColors.StarYellow else Color.LightGray,
+             fontSize = 12.sp)
+    }
+    Spacer(Modifier.width(3.dp))
+    Text(text = "($reviewCount)", color = Color.Gray, fontSize = 10.sp)
+}
+
+// SAU — 4 dòng:
+StarRating(
+    rating    = rating.toDouble(),
+    showCount = true,
+    count     = reviewCount
+)
 ```
 
-**Chỉ hiển thị sao không có số lượt:**
+---
+
+## ĐỀ BIẾN THỂ — Các dạng thầy có thể ra
+
+---
+
+### Đề 2: Dùng StarRating ở BookDetailScreen (sao to hơn)
+
+**Input:** BookDetailScreen không có component hiển thị sao đánh giá tổng hợp  
+**Output:** Trong `BookBasicInfo` hoặc trước phần review có hiện sao với size lớn hơn
+
+**Cách sửa BookBasicInfo.kt hoặc BookDetailScreen — chỉ thêm 1 dòng:**
 ```kotlin
-StarRating(rating = 3.5)  // showCount mặc định = false
+// Trong BookBasicInfo, sau phần giá:
+StarRating(
+    rating    = book.rating ?: 4.0,    // dùng rating từ API hoặc default
+    starSize  = 20.dp,                  // ← to hơn BookCard (16.dp)
+    showCount = true,
+    count     = book.reviewCount ?: 0
+)
 ```
 
-**10 sao thay vì 5 sao:**
-```kotlin
-StarRating(rating = 7.5, maxStars = 10)
-// → 7 Star + 1 StarHalf + 2 StarOutline
-```
+---
 
-**Màu sao tùy chỉnh:**
+### Đề 3: Sao có thể click được — người dùng tự đánh giá
+
+**Input:** StarRating chỉ hiển thị rating, không tương tác được  
+**Output:** Người dùng click vào sao 4 → rating đổi thành 4.0 (cho form đánh giá)
+
+**Cách sửa — thêm param `onRatingChange`:**
 ```kotlin
 @Composable
 fun StarRating(
     rating: Double,
     maxStars: Int = 5,
     starSize: Dp = 16.dp,
-    filledColor: Color = AppColors.StarYellow,   // Thêm param màu
-    emptyColor: Color = Color.LightGray,
+    onRatingChange: ((Double) -> Unit)? = null,   // ← null = chỉ đọc, không click
     showCount: Boolean = false,
     count: Int = 0
+) {
+    Row {
+        repeat(maxStars) { i ->
+            val starValue = (i + 1).toDouble()
+            // ...icon logic như cũ...
+            Icon(
+                icon, tint = tint,
+                modifier = Modifier
+                    .size(starSize)
+                    .then(
+                        if (onRatingChange != null)
+                            Modifier.clickable { onRatingChange(starValue) }
+                        else Modifier
+                    )
+            )
+        }
+    }
+}
+
+// Dùng trong ReviewScreen (form đánh giá):
+var myRating by remember { mutableStateOf(0.0) }
+StarRating(
+    rating         = myRating,
+    starSize       = 32.dp,
+    onRatingChange = { myRating = it }   // click vào sao 3 → myRating = 3.0
 )
 ```
 
 ---
 
-## 5. GỢI Ý GIẢI THÍCH CHO THẦY
+### Đề 4: Thay đổi số sao tối đa — 10 sao thay vì 5 sao
 
-**Tại sao dùng Icon thay Text:**
-- `Icons.Default.Star` = vector drawable chuẩn Material, scale mượt hơn ký tự Unicode
-- Có thể tùy chỉnh `size`, `tint`, `modifier` dễ dàng
-- `Icons.Outlined.StarOutline` cho sao rỗng — nhất quán với Design System
-- `Icons.Default.StarHalf` cho nửa sao — không thể làm được với ký tự "★"
+**Input:** `maxStars = 5` mặc định  
+**Output:** Hệ thống đánh giá 10 sao (rating 7.5/10)
 
-**DRY (Don't Repeat Yourself):**
+**Cách sử dụng — không cần sửa StarRating:**
 ```kotlin
-// Trước: Copy paste ở BookCard, BookDetailScreen, ReviewItem...
-repeat(5) { i -> Text(if (i < rating) "★" else "☆", ...) }
-
-// Sau: 1 Composable dùng ở mọi nơi
-StarRating(rating = 4.3, showCount = true, count = 128)
-StarRating(rating = 4.3, starSize = 20.dp)  // Dùng ở BookDetailScreen
-StarRating(rating = review.rating.toDouble(), starSize = 14.dp)  // Dùng ở ReviewItem
-```
-
-**Half-star logic chi tiết:**
-```kotlin
-// Với rating = 3.5:
-// i=0, starValue=1: 3.5 >= 1 → Star (đầy)
-// i=1, starValue=2: 3.5 >= 2 → Star (đầy)
-// i=2, starValue=3: 3.5 >= 3 → Star (đầy)
-// i=3, starValue=4: 3.5 >= 4? No. 3.5 >= 3.5? Yes → StarHalf
-// i=4, starValue=5: 3.5 >= 5? No. 3.5 >= 4.5? No → StarOutline
+// Chỉ truyền maxStars = 10 khi gọi:
+StarRating(rating = 7.5, maxStars = 10, starSize = 14.dp)
+// → 7 sao đầy + 1 nửa sao + 2 sao rỗng
 ```
 
 ---
 
-## 📦 HƯỚNG DẪN KÉO THẢ
+### Đề 5: Màu sao tùy chỉnh (không phải vàng)
 
-**Kéo thư mục `app/` vào thư mục `BookStore/` — chọn Replace khi được hỏi.**
+**Input:** Sao luôn màu vàng `AppColors.StarYellow`  
+**Output:** Cho phép truyền màu vào, ví dụ sao màu xanh cho "Độ tin cậy"
 
-| File | Loại | Giải quyết yêu cầu |
-|------|------|-------------------|
-| `ui/components/StarRating.kt` | ✅ DROP-IN (file mới) | Yêu cầu **(a)** — Composable sao đánh giá |
-| `ui/components/BookCard.kt` | 🔄 REPLACE (tuỳ chọn) | Yêu cầu **(b)** — dùng StarRating thay inline |
+**Cách sửa — thêm param màu:**
+```kotlin
+@Composable
+fun StarRating(
+    rating      : Double,
+    maxStars    : Int     = 5,
+    starSize    : Dp      = 16.dp,
+    filledColor : Color   = AppColors.StarYellow,   // ← thêm
+    emptyColor  : Color   = Color.LightGray,        // ← thêm
+    showCount   : Boolean = false,
+    count       : Int     = 0
+) {
+    val tint = if (rating >= starValue - 0.5) filledColor else emptyColor
+    //                                        ↑ dùng filledColor thay vì hardcode
+}
 
-> ✅ **Chỉ cần DROP-IN `StarRating.kt`** nếu thầy chỉ yêu cầu tạo component.  
-> 🔄 REPLACE `BookCard.kt` nếu thầy yêu cầu tích hợp và demo luôn.
+// Gọi với màu tùy chỉnh:
+StarRating(rating = 4.0, filledColor = Color(0xFF2196F3))  // sao xanh dương
+StarRating(rating = 5.0, filledColor = Color(0xFF9C27B0))  // sao tím
+```
 
 ---
 
-## 📁 Nội dung folder này
+### Đề 6: Hiển thị điểm số bên cạnh (vd: "4.3 ★★★★☆")
 
+**Input:** StarRating chỉ hiện sao và số lượt đánh giá `(128)`  
+**Output:** Thêm điểm số trước dãy sao: `4.3 ★★★★☆ (128)`
+
+**Cách sửa — thêm phần điểm số vào Row:**
+```kotlin
+Row(verticalAlignment = Alignment.CenterVertically) {
+    // Thêm điểm số trước sao:
+    Text(
+        text  = String.format("%.1f", rating),   // "4.3"
+        color = AppColors.StarYellow,
+        fontWeight = FontWeight.Bold,
+        fontSize = starSize.value.sp * 0.9f
+    )
+    Spacer(Modifier.width(3.dp))
+    // ... phần sao như cũ ...
+    repeat(maxStars) { i -> Icon(...) }
+    // ... phần count như cũ ...
+}
 ```
-16_rating_bar/
-├── NOTES.md
-└── app/src/main/java/com/example/bookstore/
-    └── ui/components/
-        └── StarRating.kt    ← DROP-IN (Composable sao đánh giá tái sử dụng)
+
+---
+
+### Giải thích kỹ thuật cốt lõi
+
+**Logic half-star từng bước — với rating = 3.5:**
+```
+i=0, starValue=1: 3.5 >= 1 ?  YES → Icons.Default.Star     (sao đầy, vàng)
+i=1, starValue=2: 3.5 >= 2 ?  YES → Icons.Default.Star     (sao đầy, vàng)
+i=2, starValue=3: 3.5 >= 3 ?  YES → Icons.Default.Star     (sao đầy, vàng)
+i=3, starValue=4: 3.5 >= 4 ?  NO
+                  3.5 >= 3.5? YES → Icons.Default.StarHalf  (nửa sao, vàng)
+i=4, starValue=5: 3.5 >= 5 ?  NO
+                  3.5 >= 4.5? NO  → Icons.Outlined.StarOutline (sao rỗng, xám)
+Kết quả: ★★★⯨☆
+```
+
+**Tại sao Icon thay vì Text "★":**
+```
+Text("★") — ký tự Unicode font
+  ← Phụ thuộc font thiết bị (có thể khác nhau trên các máy)
+  ← Không thể đổi size đơn lẻ từng sao
+  ← Không hỗ trợ half-star (không có ký tự "⯨" chuẩn)
+
+Icon(Icons.Default.Star) — vector drawable
+  ← Scale mượt ở mọi kích thước (12.dp đến 40.dp đều đẹp)
+  ← Màu sắc qua tint, độc lập từng icon
+  ← StarHalf sẵn có trong Material Icons
 ```

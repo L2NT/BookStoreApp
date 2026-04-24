@@ -1,146 +1,203 @@
-# BÀI TẬP KIỂM TRA THỰC HÀNH
-**Dành cho:** Nhóm 35 — Kotlin Jetpack Compose  
-**Tham chiếu:** Chương 12 — Mục 12.1.2: Quản lý sách (số lượng tồn kho)  
-**Loại:** 🟦 Pattern B — Mở rộng UI (tạo Composable con với conditional styling)
+# 15 — STOCK BADGE (TỒN KHO)
+**Tham chiếu:** Chương 12 — Mục 12.1.2  
+**Loại:** Pure Composable — when { range } → (label, color) → Surface chip
 
 ---
 
-## 1. ĐỀ BÀI
+## ĐỀ GỐC
 
-**Mục tiêu:** Kiểm tra kỹ năng tạo Composable với conditional rendering/styling. Bài tập này y hệt pattern `UVIndexIndicator` — thay vì chỉ số UV thì dùng số lượng tồn kho.
-
-**Yêu cầu:** Tạo Composable `StockBadge(quantity: Int)` hiển thị trạng thái kho hàng với màu sắc cảnh báo. Tích hợp vào `BookDetailScreen`.
-
----
-
-## 2. DỮ LIỆU ĐẦU VÀO (INPUT) — Thầy cung cấp data mẫu
-
-```json
-{ "bookId": "abc123", "title": "Kotlin in Action", "quantity": 3 }
-```
-
+### Input — Code hiện tại (không có thông tin tồn kho):
 ```kotlin
-// BookDetailScreen — hiện không hiển thị tồn kho
-// ← Không có StockBadge, không có thông tin số lượng
-```
-
----
-
-## 3. YÊU CẦU KẾT QUẢ (OUTPUT)
-
-**a.** Tạo `StockBadge(quantity: Int)` với 3 mức:
-- `quantity <= 0` → **"Hết hàng"** — màu đỏ `Color(0xFFF44336)`
-- `quantity in 1..5` → **"Sắp hết (x còn lại)"** — màu cam `Color(0xFFFF9800)`
-- `quantity > 5` → **"Còn hàng"** — màu xanh lá `Color(0xFF4CAF50)`
-
-**b.** Tích hợp vào `BookDetailScreen`: thêm `StockBadge(quantity = book.stockQuantity)` bên dưới ảnh bìa.
-
-**c.** **Demo:** Mở chi tiết sách → thấy badge màu xanh/cam/đỏ tùy theo số lượng tồn.
-
-**d.** **Giải thích:** So sánh `StockBadge` với `UVIndexIndicator` — cùng pattern: 1 input số → `when` → `(label, color)` → chip UI.
-
----
-
-## 4. TRƯỜNG HỢP INPUT / OUTPUT
-
-| `quantity` | Label hiển thị | Màu |
-|---|---|---|
-| `-5` *(âm — trường hợp lỗi DB)* | Hết hàng | 🔴 Đỏ `#F44336` |
-| `0` | Hết hàng | 🔴 Đỏ `#F44336` |
-| `1` | Sắp hết (1 còn lại) | 🟠 Cam `#FF9800` |
-| `3` | Sắp hết (3 còn lại) | 🟠 Cam `#FF9800` |
-| `5` | Sắp hết (5 còn lại) | 🟠 Cam `#FF9800` |
-| `6` | Còn hàng | 🟢 Xanh lá `#4CAF50` |
-| `100` | Còn hàng | 🟢 Xanh lá `#4CAF50` |
-
-### Các variant thầy có thể yêu cầu:
-
-**Ngưỡng cảnh báo khác (1–10 thay vì 1–5):**
-```kotlin
-val (label, color) = when {
-    quantity <= 0  -> Pair("Hết hàng",                  Color(0xFFF44336))
-    quantity <= 10 -> Pair("Sắp hết ($quantity còn lại)", Color(0xFFFF9800))  // ← đổi 5 → 10
-    else           -> Pair("Còn hàng",                  Color(0xFF4CAF50))
+// BookDetailScreen.kt — sau ảnh bìa không có gì hiển thị tồn kho
+LazyColumn {
+    item { BookImageHeader(imageUrl = book.imageUrl) }
+    item { BookBasicInfo(book = book) }   // ← lên thẳng thông tin sách, không có stock
+    // ...
 }
+// Book model — không có field stockQuantity
+data class Book(val id: String, val title: String, ..., val price: Double)
 ```
 
-**Thêm icon vào badge (giống OrderStatusChip):**
+### Output — Kết quả cần đạt:
+- Bên dưới ảnh bìa sách có **chip nhỏ** màu xanh/cam/đỏ
+- Xanh lá: "Còn hàng" | Cam: "Sắp hết (x còn lại)" | Đỏ: "Hết hàng"
+- Gọi đơn giản: `StockBadge(quantity = book.stockQuantity)`
+
+### File path các file thực hiện:
+```
+app/src/main/java/com/example/bookstore/
+├── data/model/Book.kt                      ← SỬA (thêm field stockQuantity)
+├── ui/components/StockBadge.kt             ← TẠO MỚI
+└── ui/screens/BookDetailScreen.kt          ← SỬA (thêm StockBadge vào LazyColumn)
+```
+
+### Cần thêm/sửa gì ở từng file:
+
+**Book.kt** ← SỬA thêm field:
+```kotlin
+// TRƯỚC:
+data class Book(val id: String, val title: String, val describe: String,
+                val author: String, val imageUrl: String, val price: Double = 0.0)
+
+// SAU — thêm stockQuantity với default:
+data class Book(val id: String, val title: String, val describe: String,
+                val author: String, val imageUrl: String, val price: Double = 0.0,
+                val stockQuantity: Int = 10)   // ← mặc định 10 = Còn hàng
+```
+
+**StockBadge.kt** ← TẠO MỚI:
 ```kotlin
 @Composable
 fun StockBadge(quantity: Int) {
-    val (label, color, icon) = when {
-        quantity <= 0 -> Triple("Hết hàng",    Color(0xFFF44336), Icons.Outlined.RemoveShoppingCart)
-        quantity <= 5 -> Triple("Sắp hết ($quantity còn lại)", Color(0xFFFF9800), Icons.Outlined.Warning)
-        else          -> Triple("Còn hàng",    Color(0xFF4CAF50), Icons.Outlined.CheckCircle)
+    val (label, color) = when {
+        quantity <= 0 -> Pair("Hết hàng",                        Color(0xFFF44336))
+        quantity <= 5 -> Pair("Sắp hết ($quantity còn lại)",     Color(0xFFFF9800))
+        else          -> Pair("Còn hàng",                        Color(0xFF4CAF50))
     }
-    Surface(...) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, tint = color, modifier = Modifier.size(12.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(label, color = color, ...)
-        }
+    // Dùng when { condition } không phải when(value) vì cần so sánh range
+    Surface(
+        shape  = RoundedCornerShape(4.dp),
+        color  = color.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, color)
+    ) {
+        Text(label, color = color, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
     }
 }
 ```
 
-**4 mức thay vì 3 mức:**
+**BookDetailScreen.kt** ← SỬA thêm item vào LazyColumn:
+```kotlin
+// Thêm giữa BookImageHeader và BookBasicInfo:
+item { BookImageHeader(imageUrl = book.imageUrl) }
+item {                                              // ← THÊM ĐOẠN NÀY
+    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+        StockBadge(quantity = book.stockQuantity)
+    }
+}
+item { BookBasicInfo(book = book) }
+```
+
+---
+
+## ĐỀ BIẾN THỂ — Các dạng thầy có thể ra
+
+---
+
+### Đề 2: Thêm icon vào badge (giống OrderStatusChip)
+
+**Input:** StockBadge chỉ hiện text, không có icon  
+**Output:** Có icon nhỏ trước text: ❌ Hết hàng | ⚠️ Sắp hết | ✅ Còn hàng
+
+**Cách sửa StockBadge — đổi Pair thành Triple:**
+```kotlin
+val (label, color, icon) = when {
+    quantity <= 0 -> Triple("Hết hàng",    Color(0xFFF44336), Icons.Outlined.RemoveShoppingCart)
+    quantity <= 5 -> Triple("Sắp hết ($quantity còn lại)", Color(0xFFFF9800), Icons.Outlined.Warning)
+    else          -> Triple("Còn hàng",    Color(0xFF4CAF50), Icons.Outlined.CheckCircle)
+}
+Surface(...) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
+        Icon(icon, tint = color, modifier = Modifier.size(12.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(label, color = color, ...)
+    }
+}
+```
+
+---
+
+### Đề 3: Đổi ngưỡng cảnh báo từ 5 lên 10
+
+**Input:** Sắp hết khi `quantity <= 5`  
+**Output:** Sắp hết khi `quantity <= 10`
+
+**Cách sửa StockBadge — đổi 1 số:**
+```kotlin
+quantity <= 10 -> Pair("Sắp hết ($quantity còn lại)", Color(0xFFFF9800))
+//       ↑ đổi 5 thành 10
+```
+
+---
+
+### Đề 4: 4 mức thay vì 3 mức
+
+**Input:** 3 mức: Hết hàng / Sắp hết / Còn hàng  
+**Output:** 4 mức: Hết hàng / Còn rất ít (1-3) / Sắp hết (4-10) / Còn hàng (>10)
+
+**Cách sửa:**
 ```kotlin
 val (label, color) = when {
-    quantity <= 0  -> Pair("Hết hàng",                  Color(0xFFF44336))   // Đỏ
-    quantity <= 3  -> Pair("Còn rất ít ($quantity)",    Color(0xFFE91E63))   // Hồng — rất cấp bách
+    quantity <= 0  -> Pair("Hết hàng",                   Color(0xFFF44336))  // Đỏ
+    quantity <= 3  -> Pair("Còn rất ít ($quantity)",     Color(0xFFE91E63))  // Hồng đậm
     quantity <= 10 -> Pair("Sắp hết ($quantity còn lại)", Color(0xFFFF9800)) // Cam
-    else           -> Pair("Còn hàng",                  Color(0xFF4CAF50))   // Xanh
+    else           -> Pair("Còn hàng",                   Color(0xFF4CAF50))  // Xanh
 }
 ```
 
 ---
 
-## 5. GỢI Ý GIẢI THÍCH CHO THẦY
+### Đề 5: Hiển thị số lượng cụ thể thay vì "Còn hàng"
 
-**So sánh trực tiếp với UVIndexIndicator:**
+**Input:** `quantity > 5` → chỉ hiện "Còn hàng" chung chung  
+**Output:** `quantity > 5` → hiện "Còn 47 quyển" (số cụ thể)
+
+**Cách sửa:**
 ```kotlin
-// UVIndexIndicator.jsx (React - nhóm Weather)
-const getUVInfo = (uvi) => {
-    if (uvi <= 2) return { label: 'Thấp', color: 'green' }
-    if (uvi <= 5) return { label: 'Trung bình', color: 'yellow' }
-    ...
-}
-
-// StockBadge.kt (Kotlin - nhóm BookStore)
-val (label, color) = when {
-    quantity <= 0 -> Pair("Hết hàng",     Color(0xFFF44336))
-    quantity <= 5 -> Pair("Sắp hết ($quantity còn lại)", Color(0xFFFF9800))
-    else          -> Pair("Còn hàng",     Color(0xFF4CAF50))
-}
+else -> Pair(
+    if (quantity > 100) "Còn hàng" else "Còn $quantity quyển",
+    Color(0xFF4CAF50)
+)
+// quantity = 47  → "Còn 47 quyển"
+// quantity = 150 → "Còn hàng" (không cần hiện số quá lớn)
 ```
-**Cùng pattern: số → when/if → màu/label → render**
-
-**Tại sao `when { condition }` thay vì `when(value)`:**
-- `when(value)` chỉ check bằng nhau: `when(quantity) { 3 -> ... }`
-- `when { condition }` check range và phức tạp hơn: `when { quantity <= 5 -> ... }` ✓
-- Khi so sánh range (<=, >=, in ...) → luôn dùng `when { ... }` không có tham số
 
 ---
 
-## 📦 HƯỚNG DẪN KÉO THẢ
+### Đề 6: StockBadge trong BookCard (trang chủ), không chỉ BookDetailScreen
 
-**Kéo thư mục `app/` vào thư mục `BookStore/` — chọn Replace khi được hỏi.**
+**Input:** StockBadge chỉ ở BookDetailScreen  
+**Output:** Trang chủ và danh mục cũng thấy badge tồn kho trên mỗi card
 
-| File | Loại | Giải quyết yêu cầu |
-|------|------|-------------------|
-| `ui/components/StockBadge.kt` | ✅ DROP-IN (file mới) | Yêu cầu **(a)** — Composable tồn kho |
-
-> ✅ **Chỉ cần DROP-IN `StockBadge.kt`** — thầy có thể test bằng cách gọi `StockBadge(quantity = 3)` trực tiếp.  
-> 📝 Nếu thầy yêu cầu tích hợp vào BookDetailScreen → thêm `StockBadge(quantity = book.stockQuantity)` sau `BookImageHeader`.
+**Cách sửa BookCard.kt — thêm StockBadge:**
+```kotlin
+// Trong phần giá sách, thêm badge:
+Column {
+    Text(price.toVnd(), color = AppColors.PriceColor, ...)
+    Text(originalPrice.toVnd(), textDecoration = TextDecoration.LineThrough, ...)
+    Spacer(Modifier.height(4.dp))
+    StockBadge(quantity = book.stockQuantity)   // ← thêm dòng này
+    Spacer(Modifier.height(6.dp))
+    Button(onClick = onAddToCart, ...) { ... }
+}
+```
 
 ---
 
-## 📁 Nội dung folder này
+### Giải thích kỹ thuật cốt lõi
 
+**`when { condition }` vs `when(value)` — khi nào dùng cái nào:**
+```kotlin
+// when(value) — chỉ check bằng nhau (equality)
+when (quantity) {
+    0    -> "Hết hàng"    // ← chỉ đúng khi quantity == 0 CHÍNH XÁC
+    5    -> "Sắp hết"     // ← chỉ đúng khi quantity == 5 CHÍNH XÁC
+}
+// Không catch được quantity = 3, 4 → sai!
+
+// when { condition } — check bất kỳ điều kiện boolean
+when {
+    quantity <= 0 -> "Hết hàng"    // ← đúng cho -5, -1, 0
+    quantity <= 5 -> "Sắp hết"     // ← đúng cho 1, 2, 3, 4, 5
+    else          -> "Còn hàng"    // ← đúng cho 6, 7, 100, ...
+}
+// ✓ Luôn dùng when { } khi cần so sánh range
 ```
-15_stock_badge/
-├── NOTES.md
-└── app/src/main/java/com/example/bookstore/
-    └── ui/components/
-        └── StockBadge.kt    ← DROP-IN (Composable badge tồn kho)
+
+**Giống pattern UVIndexIndicator (React/Weather):**
+```
+UV Index:       uvi → if uvi <= 2 → Low (green) | if uvi <= 5 → Moderate (yellow) | ...
+Stock Badge: quantity → when qty <= 0 → Hết (đỏ)  | qty <= 5 → Sắp hết (cam)    | ...
+Cùng pattern: số → ngưỡng → màu/label → render
 ```

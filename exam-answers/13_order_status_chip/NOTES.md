@@ -1,143 +1,206 @@
-# BÀI TẬP KIỂM TRA THỰC HÀNH
-**Dành cho:** Nhóm 35 — Kotlin Jetpack Compose  
-**Tham chiếu:** Chương 12 — Mục 12.1.2: Quản lý đơn hàng (cập nhật trạng thái)  
-**Loại:** 🟦 Pattern B — Mở rộng UI (tạo Composable con mới)
+# 13 — ORDER STATUS CHIP
+**Tham chiếu:** Chương 12 — Mục 12.1.2  
+**Loại:** Pure Composable — when → (label, color, icon) → Surface chip
 
 ---
 
-## 1. ĐỀ BÀI
+## ĐỀ GỐC
 
-**Mục tiêu:** Kiểm tra kỹ năng tạo Composable con tái sử dụng với conditional rendering/styling. Bài tập này tương tự bài `UVIndexIndicator` — thay vì chỉ số UV thì dùng trạng thái đơn hàng.
-
-**Yêu cầu:** Ứng dụng hiện hiển thị trạng thái đơn hàng dưới dạng text màu inline trong `OrderHistoryScreen`. Hãy tách logic này thành một Composable độc lập tên `OrderStatusChip` để có thể tái sử dụng.
-
----
-
-## 2. DỮ LIỆU ĐẦU VÀO (INPUT) — Hiện trạng
-
+### Input — Code hiện tại (inline, không tái sử dụng):
 ```kotlin
-// OrderHistoryScreen.kt — trạng thái được render inline, không tái sử dụng được
-private data class StatusInfo(val label: String, val color: Color, val icon: ImageVector)
-
+// OrderHistoryScreen.kt — logic màu nằm cứng trong private function
 private fun getStatusInfo(status: String): StatusInfo = when (status.uppercase()) {
-    "PENDING"                  -> StatusInfo("Chờ xác nhận",   Color(0xFFFF9800), Icons.Outlined.HourglassEmpty)
-    "PROCESSING", "CONFIRMED"  -> StatusInfo("Đang xử lý",     Color(0xFF2196F3), Icons.Outlined.Inventory2)
-    "SHIPPED", "SHIPPING"      -> StatusInfo("Đang giao hàng", Color(0xFF9C27B0), Icons.Outlined.LocalShipping)
-    "DELIVERED"                -> StatusInfo("Đã giao hàng",   Color(0xFF4CAF50), Icons.Outlined.CheckCircle)
-    "CANCELLED"                -> StatusInfo("Đã hủy",         Color(0xFFF44336), Icons.Outlined.Cancel)
-    else                       -> StatusInfo(status,            Color.Gray,        Icons.Outlined.HourglassEmpty)
+    "PENDING"    -> StatusInfo("Chờ xác nhận",   Color(0xFFFF9800), Icons.Outlined.HourglassEmpty)
+    "PROCESSING" -> StatusInfo("Đang xử lý",     Color(0xFF2196F3), Icons.Outlined.Inventory2)
+    "SHIPPED"    -> StatusInfo("Đang giao hàng", Color(0xFF9C27B0), Icons.Outlined.LocalShipping)
+    "DELIVERED"  -> StatusInfo("Đã giao hàng",   Color(0xFF4CAF50), Icons.Outlined.CheckCircle)
+    "CANCELLED"  -> StatusInfo("Đã hủy",         Color(0xFFF44336), Icons.Outlined.Cancel)
+    else         -> StatusInfo(status,            Color.Gray,        Icons.Outlined.HourglassEmpty)
 }
-// ← private/internal → không dùng được ở màn hình khác
-// ← không phải @Composable → không hưởng lợi từ recomposition
+
+// Render trong OrderCard:
+Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(statusInfo.icon, tint = statusInfo.color, modifier = Modifier.size(14.dp))
+    Spacer(Modifier.width(4.dp))
+    Text(statusInfo.label, color = statusInfo.color, fontSize = 13.sp)
+}
+// ← private → chỉ dùng được trong file này, không tái sử dụng
+// ← render thẳng, không có chip/border → trông kém hơn
 ```
 
-**Data mẫu thầy có thể cung cấp:**
-```json
-{ "orderId": 101, "status": "SHIPPED", "totalAmount": 250000 }
+### Output — Kết quả cần đạt:
+- File `OrderStatusChip.kt` mới trong `ui/components/`
+- Chip có **nền mờ + viền màu** tương ứng trạng thái
+- Gọi đơn giản: `OrderStatusChip(order.status)` → tự hiện đúng màu + label + icon
+- Dùng được ở bất kỳ màn hình nào (OrderHistoryScreen, CheckoutScreen, ...)
+
+### File path các file thực hiện:
+```
+app/src/main/java/com/example/bookstore/
+├── ui/components/OrderStatusChip.kt        ← TẠO MỚI
+└── ui/screens/OrderHistoryScreen.kt        ← SỬA (dùng chip thay inline)
+```
+
+### Cần thêm/sửa gì ở từng file:
+
+**OrderStatusChip.kt** ← TẠO MỚI — toàn bộ logic:
+```kotlin
+@Composable
+fun OrderStatusChip(status: String) {
+    val (label, color, icon) = when (status.uppercase()) {
+        "PENDING"                 -> Triple("Chờ xác nhận",   Color(0xFFFF9800), Icons.Outlined.HourglassEmpty)
+        "PROCESSING", "CONFIRMED" -> Triple("Đang xử lý",     Color(0xFF2196F3), Icons.Outlined.Inventory2)
+        "SHIPPED", "SHIPPING"     -> Triple("Đang giao hàng", Color(0xFF9C27B0), Icons.Outlined.LocalShipping)
+        "DELIVERED"               -> Triple("Đã giao hàng",   Color(0xFF4CAF50), Icons.Outlined.CheckCircle)
+        "CANCELLED"               -> Triple("Đã hủy",         Color(0xFFF44336), Icons.Outlined.Cancel)
+        else                      -> Triple(status,            Color.Gray,        Icons.Outlined.HourglassEmpty as ImageVector)
+    }
+    Surface(
+        shape  = RoundedCornerShape(16.dp),
+        color  = color.copy(alpha = 0.12f),   // nền mờ
+        border = BorderStroke(1.dp, color)    // viền rõ
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) {
+            Icon(icon, tint = color, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(label, color = color, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+```
+
+**OrderHistoryScreen.kt** ← SỬA phần header của OrderCard:
+```kotlin
+// TRƯỚC — 4 dòng code inline:
+Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(statusInfo.icon, tint = statusInfo.color, modifier = Modifier.size(14.dp))
+    Spacer(Modifier.width(4.dp))
+    Text(statusInfo.label, color = statusInfo.color, fontSize = 13.sp)
+}
+
+// SAU — 1 dòng duy nhất:
+OrderStatusChip(status = order.status)
 ```
 
 ---
 
-## 3. YÊU CẦU KẾT QUẢ (OUTPUT)
-
-**a.** Tạo `OrderStatusChip(status: String)` trong `ui/components/`:
-- Dùng `when(status.uppercase())` → `(label, color, icon)` tương ứng
-- Render `Surface` chip với `color.copy(alpha = 0.12f)` làm nền + `BorderStroke(1.dp, color)` viền
-- 5 trạng thái: PENDING (cam), PROCESSING (xanh dương), SHIPPED (tím), DELIVERED (xanh lá), CANCELLED (đỏ)
-
-**b.** Tích hợp vào `OrderHistoryScreen`: thay thế chỗ render trạng thái inline bằng `OrderStatusChip(order.status)`
-
-**c.** **Demo:** Vào màn hình Lịch sử đơn hàng → thấy chip màu sắc rõ ràng theo từng trạng thái
-
-**d.** **Giải thích:** Tại sao tách thành Composable tái sử dụng tốt hơn inline code? (Single Responsibility, reusability)
+## ĐỀ BIẾN THỂ — Các dạng thầy có thể ra
 
 ---
 
-## 4. TRƯỜNG HỢP INPUT / OUTPUT
+### Đề 2: Thêm trạng thái mới "REFUNDED" (Đã hoàn tiền)
 
-| Input `status` | Label hiển thị | Màu | Icon |
-|---|---|---|---|
-| `"PENDING"` | Chờ xác nhận | 🟠 Cam `#FF9800` | HourglassEmpty |
-| `"pending"` | Chờ xác nhận | 🟠 Cam `#FF9800` | HourglassEmpty *(uppercase() xử lý)*|
-| `"PROCESSING"` | Đang xử lý | 🔵 Xanh dương `#2196F3` | Inventory2 |
-| `"CONFIRMED"` | Đang xử lý | 🔵 Xanh dương `#2196F3` | Inventory2 *(alias)*|
-| `"SHIPPED"` | Đang giao hàng | 🟣 Tím `#9C27B0` | LocalShipping |
-| `"SHIPPING"` | Đang giao hàng | 🟣 Tím `#9C27B0` | LocalShipping *(alias)*|
-| `"DELIVERED"` | Đã giao hàng | 🟢 Xanh lá `#4CAF50` | CheckCircle |
-| `"CANCELLED"` | Đã hủy | 🔴 Đỏ `#F44336` | Cancel |
-| `"UNKNOWN_XYZ"` *(status lạ)* | `"UNKNOWN_XYZ"` *(nguyên văn)* | ⚪ Xám | HourglassEmpty |
+**Input:** `OrderStatusChip` không xử lý status "REFUNDED"  
+**Output:** "REFUNDED" → chip màu teal `#009688`, icon `Refresh`, label "Đã hoàn tiền"
 
-### Các variant thầy có thể yêu cầu thêm:
-
-**Thêm trạng thái REFUNDED:**
+**Cách sửa OrderStatusChip — thêm 1 dòng vào when:**
 ```kotlin
 "REFUNDED" -> Triple("Đã hoàn tiền", Color(0xFF009688), Icons.Outlined.Refresh)
 ```
 
-**Thêm trạng thái RETURN_REQUESTED:**
+---
+
+### Đề 3: Thêm trạng thái "RETURN_REQUESTED" (Yêu cầu trả hàng)
+
+**Input:** Không xử lý "RETURN_REQUESTED"  
+**Output:** Chip màu nâu `#795548`, icon `Undo`, label "Yêu cầu trả hàng"
+
+**Cách sửa:**
 ```kotlin
-"RETURN_REQUESTED" -> Triple("Yêu cầu trả hàng", Color(0xFF795548), Icons.Outlined.Undo)
+"RETURN_REQUESTED", "RETURNING" -> Triple("Yêu cầu trả hàng", Color(0xFF795548), Icons.Outlined.Undo)
 ```
 
-**Chip nhỏ hơn — thêm param `compact`:**
+---
+
+### Đề 4: Chip nhỏ hơn (compact) cho màn hình danh sách dày đặc
+
+**Input:** `OrderStatusChip` có kích thước cố định (padding 10dp, icon 14dp, text 12sp)  
+**Output:** Có 2 kích thước: mặc định và compact (padding 6dp, icon 10dp, text 10sp)
+
+**Cách sửa — thêm param `compact`:**
 ```kotlin
 @Composable
 fun OrderStatusChip(status: String, compact: Boolean = false) {
-    val fontSize = if (compact) 10.sp else 12.sp
+    // ... (label, color, icon như cũ)
+    val hPadding = if (compact) 6.dp  else 10.dp
+    val vPadding = if (compact) 2.dp  else 4.dp
     val iconSize = if (compact) 10.dp else 14.dp
-    // ... dùng fontSize, iconSize trong render
+    val fontSize = if (compact) 10.sp else 12.sp
+
+    Surface(shape = RoundedCornerShape(if (compact) 8.dp else 16.dp), ...) {
+        Row(modifier = Modifier.padding(horizontal = hPadding, vertical = vPadding)) {
+            Icon(icon, modifier = Modifier.size(iconSize), ...)
+            Text(label, fontSize = fontSize, ...)
+        }
+    }
 }
-// Gọi: OrderStatusChip(order.status, compact = true) → chip nhỏ hơn cho danh sách
+// Gọi compact: OrderStatusChip(order.status, compact = true)
 ```
 
 ---
 
-## 5. GỢI Ý GIẢI THÍCH CHO THẦY
+### Đề 5: Chip hiển thị trong CheckoutScreen sau khi đặt hàng thành công
 
-**Tại sao tách thành Composable?**
-- **Tái sử dụng**: `OrderStatusChip` có thể dùng trong `OrderHistoryScreen`, `CheckoutScreen`, dashboard, notification — không copy-paste code
-- **Single Responsibility**: logic màu/label gom vào 1 chỗ — thay đổi 1 lần, áp dụng khắp nơi
-- **Testable**: Composable nhận param đơn giản → dễ preview/test từng trạng thái
+**Input:** CheckoutScreen hiện thị "Đặt hàng thành công!" nhưng không có chip trạng thái  
+**Output:** Sau khi đặt hàng → hiện `OrderStatusChip("PENDING")` (chip cam "Chờ xác nhận")
 
-**So sánh với UVIndexIndicator (nhóm Weather):**
-```
-UVIndexIndicator(uvi: Double)     →  when(uvi) → color (Xanh/Vàng/Cam/Đỏ/Tím)
-OrderStatusChip(status: String)   →  when(status) → color (Cam/Xanh/Tím/Xanh lá/Đỏ)
-```
-Cùng pattern: **1 input → conditional color/label → Chip UI**
-
-**Kỹ thuật "tinted chip" Material3:**
+**Cách sửa CheckoutScreen — thêm chip vào phần success UI:**
 ```kotlin
-Surface(
-    shape  = RoundedCornerShape(16.dp),
-    color  = color.copy(alpha = 0.12f),   // Nền mờ cùng màu
-    border = BorderStroke(1.dp, color)    // Viền rõ cùng màu
-) { ... }
-// Không dùng FilterChip API để tránh phức tạp — Surface đơn giản hơn, dễ kiểm soát
+// Phần success
+Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Icon(Icons.Default.CheckCircle, tint = Color(0xFF4CAF50), modifier = Modifier.size(64.dp))
+    Text("Đặt hàng thành công!", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+    Spacer(Modifier.height(8.dp))
+    OrderStatusChip(status = "PENDING")   // ← thêm dòng này
+    Text("Đơn hàng đang chờ xác nhận", color = Color.Gray, fontSize = 13.sp)
+}
 ```
 
 ---
 
-## 📦 HƯỚNG DẪN KÉO THẢ
+### Đề 6: Không có icon, chỉ có màu và text (phiên bản đơn giản hơn)
 
-**Kéo thư mục `app/` vào thư mục `BookStore/` — chọn Replace khi được hỏi.**
+**Input:** Thầy yêu cầu chip đơn giản, không cần icon  
+**Output:** Chip chỉ có nền màu + text label, không có icon
 
-| File | Loại | Giải quyết yêu cầu |
-|------|------|-------------------|
-| `ui/components/OrderStatusChip.kt` | ✅ DROP-IN (file mới) | Yêu cầu **(a)** — Composable chip |
-| `ui/screens/OrderHistoryScreen.kt` | 🔄 REPLACE | Yêu cầu **(b)** — dùng OrderStatusChip |
+**Cách sửa — bỏ icon ra khỏi Triple và Row:**
+```kotlin
+// Đổi Triple thành Pair:
+val (label, color) = when (status.uppercase()) {
+    "PENDING"    -> Pair("Chờ xác nhận",   Color(0xFFFF9800))
+    "PROCESSING" -> Pair("Đang xử lý",     Color(0xFF2196F3))
+    // ...
+}
 
-> ✅ **Chỉ DROP-IN `OrderStatusChip.kt` là đủ để demo** nếu thầy không yêu cầu refactor `OrderHistoryScreen`.  
-> ⚠️ Sau khi kéo thả → Build → Rebuild Project → Run.
+Surface(shape = RoundedCornerShape(16.dp), color = color.copy(alpha = 0.12f), border = BorderStroke(1.dp, color)) {
+    Text(label, color = color, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+    // ← Không có Row, không có Icon
+}
+```
 
 ---
 
-## 📁 Nội dung folder này
+### Giải thích kỹ thuật cốt lõi
 
+**Pattern "tinted chip" — tại sao dùng Surface thay FilterChip:**
+```kotlin
+// FilterChip — phức tạp hơn, có built-in selected state, leadingIcon API
+FilterChip(selected = true, onClick = {}, label = { Text("Đang xử lý") })
+// ← Khó customize màu chính xác
+
+// Surface — đơn giản, kiểm soát hoàn toàn
+Surface(color = color.copy(alpha = 0.12f), border = BorderStroke(1.dp, color)) { ... }
+// ← Màu nền = màu status mờ đi 88%, viền = màu status 100%
+// ← Clean, tái sử dụng, không phụ thuộc built-in state
 ```
-13_order_status_chip/
-├── NOTES.md
-└── app/src/main/java/com/example/bookstore/
-    └── ui/components/
-        └── OrderStatusChip.kt     ← DROP-IN (Composable chip tái sử dụng)
+
+**Tại sao `status.uppercase()` quan trọng:**
+```kotlin
+// Backend trả về không nhất quán:
+"pending" → uppercase() → "PENDING" ✓
+"Shipped" → uppercase() → "SHIPPED" ✓
+"CANCELLED" → uppercase() → "CANCELLED" ✓
+// Không có uppercase() → khi backend trả "pending" sẽ vào else → chip xám, sai!
 ```
