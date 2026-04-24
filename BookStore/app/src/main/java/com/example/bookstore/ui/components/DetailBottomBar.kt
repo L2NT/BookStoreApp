@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,7 +34,7 @@ fun DetailBottomBar() {
     // Dùng Surface để tạo bóng (elevation) đổ lên trên nội dung cuộn
     Surface(
         shadowElevation = 8.dp,
-        color = Color.White
+        color = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
@@ -49,7 +50,7 @@ fun DetailBottomBar() {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFEEEEEE))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Text("-", modifier = Modifier.clickable {}.padding(horizontal = 12.dp, vertical = 8.dp), fontWeight = FontWeight.Bold)
                 Text("1", modifier = Modifier.padding(horizontal = 8.dp), fontWeight = FontWeight.Bold)
