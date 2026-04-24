@@ -1,0 +1,39 @@
+# IntelliJ IDEA
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries
+.idea/shelf
+.idea/caches
+.idea/copilot*
+.idea/deploymentTargetSelector.xml
+
+# Giữ lại các file cấu hình quan trọng:
+# .idea/modules.xml       → danh sách modules
+# .idea/gradle.xml        → cấu hình Gradle
+# .idea/misc.xml          → JDK config
+# .idea/vcs.xml           → Git mapping
+# .idea/runConfigurations → Run configurations
+# .idea/externalDependencies.xml → plugin yêu cầu
+
+# *.iml (được tạo lại tự động khi sync)
+*.iml
+
+# Build outputs
+**/build/
+**/target/
+
+# Gradle wrapper jar (giữ gradlew script, bỏ jar)
+BookStore/.gradle/
+BookStore/gradle/wrapper/gradle-wrapper.jar
+
+# Android local config (chứa đường dẫn SDK máy cụ thể)
+BookStore/local.properties
+
+# Maven local
+bookstore-backend/.mvn/repository/
+
+# OS files
+.DS_Store
+Thumbs.db
+
