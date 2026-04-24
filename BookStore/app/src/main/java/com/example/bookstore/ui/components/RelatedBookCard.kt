@@ -54,7 +54,7 @@ fun RelatedBookCard(book: MockBookRelated) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(book.title, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
-            Text(book.author, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
+            Text(book.author, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), maxLines = 1)
             Spacer(modifier = Modifier.height(4.dp))
             Row { repeat(5) { Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(12.dp)) } }
             Spacer(modifier = Modifier.height(4.dp))

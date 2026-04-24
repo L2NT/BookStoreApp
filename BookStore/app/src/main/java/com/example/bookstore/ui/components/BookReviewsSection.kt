@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,7 +45,7 @@ fun BookReviewsSection() {
         // Khu vực Tổng quan điểm số và Biểu đồ thanh
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("4.0", fontSize = 48.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black)
+                Text("4.0", fontSize = 48.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
                 Row { repeat(4) { Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp)) }; Icon(Icons.Default.Star, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp)) }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("120 đánh giá", color = Color.Gray, fontSize = 14.sp)

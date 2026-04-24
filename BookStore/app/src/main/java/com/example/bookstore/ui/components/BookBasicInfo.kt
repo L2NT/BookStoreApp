@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ fun BookBasicInfo(book: Book) {
 
         Spacer(modifier = Modifier.height(4.dp))
         Row {
-            Text("Tác giả: ", color = Color.Gray, fontSize = 14.sp)
+            Text("Tác giả: ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
             Text(book.author, color = Color(0xFF3B5998), fontSize = 14.sp)
         }
 
@@ -39,7 +40,7 @@ fun BookBasicInfo(book: Book) {
             Icon(Icons.Default.Star, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("4.0", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(" (120)", color = Color.Gray, fontSize = 14.sp)
+            Text(" (120)", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
