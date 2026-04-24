@@ -20,7 +20,7 @@ fun BookImageHeader(imageUrl: String) {
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(

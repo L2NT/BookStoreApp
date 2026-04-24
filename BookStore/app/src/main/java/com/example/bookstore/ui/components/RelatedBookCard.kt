@@ -12,9 +12,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +36,7 @@ import com.example.bookstore.ui.screens.MockBookRelated
 @Composable
 fun RelatedBookCard(book: MockBookRelated) {
     Card(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(4.dp), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
@@ -40,7 +44,7 @@ fun RelatedBookCard(book: MockBookRelated) {
             Box {
                 AsyncImage(
                     model = book.imageUrl, contentDescription = book.title,
-                    modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(2.dp)).background(Color(0xFFF0F0F0)),
+                    modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
                     contentScale = ContentScale.Crop
                 )
                 // Hiển thị badge nếu có

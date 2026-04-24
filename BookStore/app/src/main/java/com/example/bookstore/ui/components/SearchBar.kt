@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,7 +27,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             .clickable { onSearchClick() }
     ) {
@@ -37,12 +41,12 @@ fun SearchBar(onSearchClick: () -> Unit) {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp)),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF0F0F0), // Nền xám của ô search
-                unfocusedContainerColor = Color(0xFFF0F0F0),
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, // Nền xám của ô search
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                 focusedIndicatorColor = Color.Transparent, // Tắt cái dòng kẻ gạch dưới
                 unfocusedIndicatorColor = Color.Transparent,
 
-                disabledContainerColor = Color(0xFFF0F0F0),
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                 disabledTextColor = Color.Black,
                 disabledPlaceholderColor = Color.Gray,
                 disabledLeadingIconColor = Color.Gray,

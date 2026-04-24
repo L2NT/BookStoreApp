@@ -188,14 +188,14 @@ fun OrderHistoryScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.PrimaryBlue)
             )
         },
-        containerColor = Color(0xFFF0F0F0)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
             // ── Tab bar ──────────────────────────────────────────────────
             PrimaryScrollableTabRow(
                 selectedTabIndex = selectedTab,
-                containerColor   = Color.White,
+                containerColor   = MaterialTheme.colorScheme.surface,
                 contentColor     = AppColors.PrimaryBlue,
                 edgePadding      = 0.dp
             ) {
@@ -305,7 +305,7 @@ private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFF0F0F0))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
             // Body
             Row(
@@ -340,7 +340,7 @@ private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFF0F0F0))
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
             // Footer
             Row(
@@ -361,7 +361,7 @@ private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
 
             // Hint bấm vào nếu PENDING
             if (isPending) {
-                HorizontalDivider(color = Color(0xFFF0F0F0))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center,
