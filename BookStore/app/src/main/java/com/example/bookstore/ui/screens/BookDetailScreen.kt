@@ -113,12 +113,12 @@ fun BookDetailScreen(
             ) {
                 item {BookImageHeader(imageUrl = book.imageUrl) }
                 item {BookBasicInfo(book = book) }
-                item { Divider(color = Color(0xFFEEEEEE), thickness = 8.dp) }
+                item { Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 8.dp) }
                 item { BookDescription(description = book.describe) }
-                item { Divider(color = Color(0xFFEEEEEE), thickness = 8.dp) }
+                item { Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 8.dp) }
                 item { BookSpecifications(book= book) }
                 item { BookReviewsSection() }
-                item { Divider(color = Color(0xFFEEEEEE), thickness = 8.dp) }
+                item { Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 8.dp) }
                 item { RelatedProductsSection() }
 
 
@@ -140,7 +140,7 @@ fun DetailBottomBar(
     // Dùng Surface để tạo bóng (elevation) đổ lên trên nội dung cuộn
     Surface(
         shadowElevation = 8.dp,
-        color = Color.White
+        color = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
@@ -156,7 +156,7 @@ fun DetailBottomBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFEEEEEE))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Text(
                     "−",

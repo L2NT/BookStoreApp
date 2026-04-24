@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -36,7 +37,7 @@ fun SpecRow(title: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
     ) {
-        Text(title, modifier = Modifier.weight(1f), color = Color.Gray, fontSize = 14.sp)
+        Text(title, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
         Text(value, modifier = Modifier.weight(2f), fontWeight = FontWeight.Medium, fontSize = 14.sp)
     }
 }
