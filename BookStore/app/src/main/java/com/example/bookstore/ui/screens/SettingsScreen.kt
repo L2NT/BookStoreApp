@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PersonOff
@@ -146,7 +147,7 @@ private fun SettingsItem(icon: ImageVector, label: String, onClick: () -> Unit) 
             color    = MaterialTheme.colorScheme.onSurface
         )
         Icon(
-            Icons.Default.KeyboardArrowRight,
+            Icons.Default.ChevronRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         )
