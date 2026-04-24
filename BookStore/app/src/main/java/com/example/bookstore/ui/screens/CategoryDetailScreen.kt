@@ -101,7 +101,7 @@ fun CategoryDetailScreen(
             )
         },
         snackbarHost   = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
@@ -109,7 +109,7 @@ fun CategoryDetailScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -171,7 +171,7 @@ fun CategoryDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Text("Khoảng giá:", fontWeight = FontWeight.Medium, fontSize = 13.sp)
@@ -323,7 +323,7 @@ fun CategoryDetailScreen(
 //    // • Tổng cần: 151dp < 174dp ✓  buffer 23dp → nút luôn hiển thị đầy đủ
 //    Card(
 //        shape     = RoundedCornerShape(12.dp),
-//        colors    = CardDefaults.cardColors(containerColor = Color.White),
+//        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 //        elevation = CardDefaults.cardElevation(2.dp),
 //        modifier  = Modifier.fillMaxWidth().height(360.dp)
 //    ) {

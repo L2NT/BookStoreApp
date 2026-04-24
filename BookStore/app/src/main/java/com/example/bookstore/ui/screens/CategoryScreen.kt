@@ -48,7 +48,7 @@ fun CategoryScreen(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PrimaryBlueCat)
             )
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyVerticalGrid(
             columns               = GridCells.Fixed(2),
@@ -73,7 +73,7 @@ fun CategoryScreen(navController: NavController) {
 fun CategoryCard(category: Category, onClick: () -> Unit) {
     Card(
         shape     = RoundedCornerShape(12.dp),
-        colors    = CardDefaults.cardColors(containerColor = Color.White),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp),
         modifier  = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {

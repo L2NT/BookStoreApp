@@ -46,7 +46,7 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding) // Nhận padding từ Scaffold để không bị lẹm UI
         ) {
             item { HomeTopBar() }

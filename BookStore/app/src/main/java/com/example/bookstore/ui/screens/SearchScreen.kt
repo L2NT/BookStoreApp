@@ -31,7 +31,7 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         // Thanh tìm kiếm
         SearchTopBar(searchText = searchText,
@@ -48,7 +48,7 @@ fun SearchScreen(
             item { TrendingSearchesSection() }
 
             // Thanh ngăn cách xám
-            item { Divider(color = Color(0xFFF5F5F5), thickness = 8.dp) }
+            item { Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 8.dp) }
 
             // Danh mục phổ biến
             item { PopularCategoriesSection() }
@@ -155,7 +155,7 @@ fun CategoryChip(icon: ImageVector, text: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFF5F5F5)) // Màu nền xám nhạt
+            .background(MaterialTheme.colorScheme.background) // Màu nền xám nhạt
             .clickable { /* TODO: Chuyển trang danh mục */ }
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically

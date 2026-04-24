@@ -48,7 +48,7 @@ fun ContactScreen(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.PrimaryBlue)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         Column(
             modifier = Modifier
@@ -258,7 +258,7 @@ private fun ContactInfoCard(
 ) {
     Card(
         shape     = RoundedCornerShape(12.dp),
-        colors    = CardDefaults.cardColors(containerColor = Color.White),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp),
         modifier  = Modifier.fillMaxWidth()
     ) {
@@ -309,7 +309,7 @@ private fun SocialCircle(label: String, color: Color, onClick: () -> Unit) {
 private fun BranchCard(name: String, address: String, phone: String, hours: String) {
     Card(
         shape     = RoundedCornerShape(12.dp),
-        colors    = CardDefaults.cardColors(containerColor = Color.White),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp),
         modifier  = Modifier.fillMaxWidth()
     ) {

@@ -124,7 +124,7 @@ fun LoginScreenContent(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = AppColors.PrimaryBlue)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         Column(
             modifier = Modifier

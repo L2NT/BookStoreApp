@@ -98,7 +98,7 @@ fun BookDetailScreen(
                 }
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         if (isLoading) {
             // Đang load thì xoay vòng

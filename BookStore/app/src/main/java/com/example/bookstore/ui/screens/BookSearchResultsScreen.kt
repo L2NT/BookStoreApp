@@ -83,7 +83,7 @@ fun BookSearchResultsScreen(
                 FilterBar()
             }
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Box(modifier = Modifier
             .padding(innerPadding)

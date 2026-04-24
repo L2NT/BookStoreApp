@@ -275,7 +275,7 @@ private fun OrderCard(order: OrderResponse, onClick: (() -> Unit)? = null) {
 
     Card(
         shape     = RoundedCornerShape(0.dp),
-        colors    = CardDefaults.cardColors(containerColor = Color.White),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(0.dp),
         modifier  = Modifier
             .fillMaxWidth()

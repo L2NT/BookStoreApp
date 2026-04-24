@@ -54,7 +54,7 @@ fun ProfileScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PrimaryBlueProfile)
             )
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -65,7 +65,7 @@ fun ProfileScreen(
         ) {
             Card(
                 shape     = RoundedCornerShape(12.dp),
-                colors    = CardDefaults.cardColors(containerColor = Color.White),
+                colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp),
                 modifier  = Modifier.fillMaxWidth()
             ) {

@@ -68,7 +68,7 @@ fun ChangePasswordScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PrimaryBlueCP)
             )
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -80,7 +80,7 @@ fun ChangePasswordScreen(
         ) {
             Card(
                 shape     = RoundedCornerShape(12.dp),
-                colors    = CardDefaults.cardColors(containerColor = Color.White),
+                colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp),
                 modifier  = Modifier.fillMaxWidth()
             ) {
