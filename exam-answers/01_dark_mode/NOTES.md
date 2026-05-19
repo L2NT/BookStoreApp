@@ -1,6 +1,6 @@
 # 01 — DARK MODE
 **Tham chiếu:** Chương 12 — Mục 12.1.3  
-**Loại:** ViewModel + StateFlow + MaterialTheme động
+[.gradle](../../BookStore/.gradle)**Loại:** ViewModel + StateFlow + MaterialTheme động
 
 ---
 
